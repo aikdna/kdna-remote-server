@@ -1,0 +1,17 @@
+kdna-remote-server
+Copyright 2026 KDNA Authors
+
+This product includes software developed at
+https://github.com/aikdna/kdna-remote-server
+
+This server is a structural selection layer for KDNA `.kdna`
+assets in `remote` access mode. It does not transmit, store, or
+certify judgment content. See LICENSE for the full Apache 2.0
+license text. See README.md for the self-hosting invariant and
+layer-isolation guarantees.
+
+The forbidden content-trust vocabulary (`official`, `trusted`,
+`recommended`, `high_quality`, `quality_badge`,
+`officially_approved`) is structurally excluded from server
+responses per SPEC §13.1 and the layer isolation rules in
+`docs/REMOTE_MODE.md`.
