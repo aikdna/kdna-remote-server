@@ -251,7 +251,7 @@ function startServer(opts = {}) {
     const handler = makeRequestHandler(opts);
     const server = http.createServer(handler);
     server.on('error', reject);
-    server.listen(opts.port || 0, opts.host || '127.0.0.1', () => {
+    server.listen(typeof opts.port === 'number' ? opts.port : 0, opts.host || '127.0.0.1', () => {
       const addr = server.address();
       resolve({ server, port: addr.port, host: addr.address });
     });
