@@ -120,6 +120,12 @@ function makeRequestHandler(opts) {
         try {
           payload = body.length === 0 ? {} : JSON.parse(body);
         } catch (e) {
+          appendAudit({
+            event: 'projection',
+            result: 'invalid_json',
+            client: clientKey,
+            asset_id: asset.asset_id,
+          }, opts.auditLog);
           jsonError(res, 400, 'INVALID_JSON', `request body is not valid JSON: ${e.message}`);
           return;
         }
@@ -132,6 +138,12 @@ function makeRequestHandler(opts) {
         const mode = typeof payload.mode === 'string' ? payload.mode : 'judge';
 
         if (!task) {
+          appendAudit({
+            event: 'projection',
+            result: 'missing_task',
+            client: clientKey,
+            asset_id: asset.asset_id,
+          }, opts.auditLog);
           jsonError(res, 400, 'MISSING_TASK', 'task field is required');
           return;
         }
@@ -181,6 +193,13 @@ function makeRequestHandler(opts) {
               return;
             }
           } catch (e) {
+            appendAudit({
+              event: 'projection',
+              result: 'activation_server_error',
+              client: clientKey,
+              asset_id: asset.asset_id,
+              reason: e.message,
+            }, opts.auditLog);
             jsonError(res, 502, 'ACTIVATION_SERVER_ERROR', e.message);
             return;
           }
