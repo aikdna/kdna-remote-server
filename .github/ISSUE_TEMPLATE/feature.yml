@@ -1,0 +1,43 @@
+name: Feature request
+description: Propose an improvement to the remote projection server
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What self-hosted projection or integration problem does this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the smallest behavior or API change that would solve it.
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Projection request / response
+        - Entitlement verification
+        - Audit logging
+        - Rate limiting
+        - Deployment / operations
+        - Documentation only
+    validations:
+      required: true
+  - type: textarea
+    id: contract-impact
+    attributes:
+      label: Public contract impact
+      description: Does this change task projection shape, error codes, security boundaries, or deployment assumptions?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: How are you solving this today?

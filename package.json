@@ -29,6 +29,9 @@
     "type": "git",
     "url": "https://github.com/aikdna/kdna-remote-server.git"
   },
+  "bugs": {
+    "url": "https://github.com/aikdna/kdna-remote-server/issues"
+  },
   "homepage": "https://github.com/aikdna/kdna-remote-server",
   "keywords": [
     "kdna",
