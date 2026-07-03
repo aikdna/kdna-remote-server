@@ -125,6 +125,8 @@ function makeRequestHandler(opts) {
         }
 
         const kdnaId = typeof payload.kdna_id === 'string' ? payload.kdna_id : null;
+        const licenseKey = typeof payload.license_key === 'string' ? payload.license_key : null;
+        const licenseId = typeof payload.license_id === 'string' ? payload.license_id : null;
         const task = typeof payload.task === 'string' ? payload.task : '';
         const context = typeof payload.context === 'string' ? payload.context : '';
         const mode = typeof payload.mode === 'string' ? payload.mode : 'judge';
@@ -159,8 +161,8 @@ function makeRequestHandler(opts) {
             const result = await verifyEntitlement({
               activationUrl,
               kdnaId: kdnaId || asset.asset_id,
-              task,
-              context,
+              licenseKey,
+              licenseId,
             });
             if (!result.ok) {
               appendAudit({

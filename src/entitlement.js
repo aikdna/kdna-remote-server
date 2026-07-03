@@ -16,7 +16,7 @@
 
 'use strict';
 
-function verifyEntitlement({ activationUrl, kdnaId, task, context }) {
+function verifyEntitlement({ activationUrl, kdnaId, licenseKey, licenseId }) {
   if (!activationUrl) {
     return Promise.resolve({
       ok: false,
@@ -24,14 +24,26 @@ function verifyEntitlement({ activationUrl, kdnaId, task, context }) {
       error: { code: 'NO_ACTIVATION_SERVER', message: 'activation server URL not configured' },
     });
   }
+  if (!licenseKey && !licenseId) {
+    return Promise.resolve({
+      ok: false,
+      status: 400,
+      error: {
+        code: 'MISSING_ENTITLEMENT_IDENTIFIER',
+        message: 'license_key or license_id is required for entitlement verification',
+      },
+    });
+  }
 
   // The activation server's sync endpoint is used for the
   // refresh path. For a one-shot projection call we POST a
-  // minimal request body — domain + license_id only — and the
-  // server replies with the current entitlement record.
+  // minimal request body — domain plus license_key or license_id —
+  // and the server replies with the current entitlement record.
   const url = joinUrl(activationUrl, '/v1/entitlements/sync');
   const body = JSON.stringify({
     domain: kdnaId,
+    ...(licenseKey ? { license_key: licenseKey } : {}),
+    ...(licenseId ? { license_id: licenseId } : {}),
     client: 'kdna-remote-server',
     client_version: require('../package.json').version,
   });

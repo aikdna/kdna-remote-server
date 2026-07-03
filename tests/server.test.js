@@ -13,10 +13,12 @@
  *      (forbidden terms, "all axioms", etc.)
  *   8. /v1/project without --dry-run and without --activation-server
  *      returns a 500 NO_ACTIVATION_SERVER error
- *   9. /v1/project respects rate-limiting per client
- *  10. /v1/project response never includes the forbidden
+ *   9. /v1/project forwards entitlement identifiers in non-dry-run mode
+ *  10. /v1/project without entitlement identifiers fails closed before sync
+ *  11. /v1/project respects rate-limiting per client
+ *  12. /v1/project response never includes the forbidden
  *      content-trust vocabulary
- *  11. /v1/project JSON output is well-formed (no stack trace leak)
+ *  13. /v1/project JSON output is well-formed (no stack trace leak)
  *
  * Run: node --test tests/
  */
@@ -25,6 +27,7 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -53,6 +56,49 @@ function httpJson(ctx, method, path, body) {
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined,
   });
+}
+
+async function withActivationSyncStub(fn) {
+  const requests = [];
+  const server = http.createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/entitlements/sync') {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: false, error: { code: 'NOT_FOUND' } }));
+      return;
+    }
+
+    let raw = '';
+    req.on('data', (chunk) => { raw += chunk; });
+    req.on('end', () => {
+      const body = JSON.parse(raw || '{}');
+      requests.push(body);
+
+      if (body.license_key === 'KDNA-LIC-ok' || body.license_id === 'lic_ok') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          license_id: body.license_id || 'lic_ok',
+          domain: body.domain,
+          status: 'active',
+          revoked: false,
+        }));
+        return;
+      }
+
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({
+        ok: false,
+        error: { code: 'INVALID_LICENSE_KEY', message: 'no entitlement matches' },
+      }));
+    });
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  try {
+    const { port } = server.address();
+    return await fn({ url: `http://127.0.0.1:${port}`, requests });
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
 }
 
 test('Story 18 server: /healthz returns 200 with asset metadata', async () => {
@@ -179,6 +225,51 @@ test('Story 18 server: /v1/project with --dry-run=false and no activation server
   } finally {
     await stopServer(ctx.server);
   }
+});
+
+test('Story 18 server: non-dry-run projection forwards license_key to activation sync', async () => {
+  await withActivationSyncStub(async (activation) => {
+    await withServer({
+      dryRun: false,
+      activationUrl: activation.url,
+      rateLimitMs: 0,
+    }, async (ctx) => {
+      const res = await httpJson(ctx, 'POST', '/v1/project', {
+        kdna_id: 'kdna:test:remote-server-fixture',
+        license_key: 'KDNA-LIC-ok',
+        task: 'review',
+      });
+      assert.equal(res.status, 200);
+      const body = await res.json();
+      assert.equal(body.projection_policy, 'remote');
+      assert.ok(body.task_projection);
+    });
+
+    assert.equal(activation.requests.length, 1);
+    assert.equal(activation.requests[0].domain, 'kdna:test:remote-server-fixture');
+    assert.equal(activation.requests[0].license_key, 'KDNA-LIC-ok');
+    assert.equal(activation.requests[0].client, 'kdna-remote-server');
+  });
+});
+
+test('Story 18 server: non-dry-run projection without entitlement identifier fails before sync', async () => {
+  await withActivationSyncStub(async (activation) => {
+    await withServer({
+      dryRun: false,
+      activationUrl: activation.url,
+      rateLimitMs: 0,
+    }, async (ctx) => {
+      const res = await httpJson(ctx, 'POST', '/v1/project', {
+        kdna_id: 'kdna:test:remote-server-fixture',
+        task: 'review',
+      });
+      assert.equal(res.status, 400);
+      const body = await res.json();
+      assert.equal(body.error.code, 'MISSING_ENTITLEMENT_IDENTIFIER');
+    });
+
+    assert.equal(activation.requests.length, 0);
+  });
 });
 
 test('Story 18 server: rate-limiting kicks in for repeat calls', async () => {
