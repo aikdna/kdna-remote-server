@@ -16,7 +16,9 @@
  *   9. /v1/project respects rate-limiting per client
  *  10. /v1/project response never includes the forbidden
  *      content-trust vocabulary
- *  11. /v1/project JSON output is well-formed (no stack trace leak)
+ *  11. /v1/project without task returns MISSING_TASK
+ *  12. /v1/project error paths are audit logged without plaintext
+ *  13. Unknown routes return 404
  *
  * Run: node --test tests/
  */
@@ -53,6 +55,14 @@ function httpJson(ctx, method, path, body) {
     headers: body ? { 'Content-Type': 'application/json' } : {},
     body: body ? JSON.stringify(body) : undefined,
   });
+}
+
+function readAuditEvents(auditLog) {
+  return fs.readFileSync(auditLog, 'utf8')
+    .trim()
+    .split('\n')
+    .filter(Boolean)
+    .map((line) => JSON.parse(line));
 }
 
 test('Story 18 server: /healthz returns 200 with asset metadata', async () => {
@@ -227,6 +237,32 @@ test('Story 18 server: missing task field returns 400', async () => {
     const body = await res.json();
     assert.equal(body.error.code, 'MISSING_TASK');
   });
+});
+
+test('Story 18 server: projection error paths are audit logged without plaintext', async () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'kdna-remote-audit-'));
+  const auditLog = path.join(tmp, 'audit.jsonl');
+
+  await withServer({ auditLog, rateLimitMs: 0 }, async (ctx) => {
+    const invalid = await fetch(`http://127.0.0.1:${ctx.port}/v1/project`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{"task":"review","context":"plaintext-secret"',
+    });
+    assert.equal(invalid.status, 400);
+
+    const missingTask = await httpJson(ctx, 'POST', '/v1/project', {
+      kdna_id: 'kdna:test:remote-server-fixture',
+      context: 'plaintext-secret',
+    });
+    assert.equal(missingTask.status, 400);
+  });
+
+  const events = readAuditEvents(auditLog);
+  assert.deepEqual(events.map((event) => event.result), ['invalid_json', 'missing_task']);
+  assert.ok(events.every((event) => event.event === 'projection'));
+  assert.ok(events.every((event) => event.asset_id === 'kdna:test:remote-server-fixture'));
+  assert.doesNotMatch(fs.readFileSync(auditLog, 'utf8'), /plaintext-secret/);
 });
 
 test('Story 18 server: unknown route returns 404', async () => {
