@@ -106,11 +106,19 @@ Request body:
 ```json
 {
   "kdna_id": "@yourname/your-asset@1.0.0",
+  "license_key": "KDNA-LIC-customer-1",
   "task": "review_article",
   "context": "Pre-publish review of a technical blog post",
   "mode": "judge"
 }
 ```
+
+When the server is not running with `--dry-run`, include either
+`license_key` or `license_id`. The projection server forwards
+that identifier, plus the requested `kdna_id`, to the configured
+activation server's `/v1/entitlements/sync` endpoint and fails
+closed if no active entitlement is returned. Entitlement
+identifiers are not written to the projection audit log.
 
 Response body (200):
 
