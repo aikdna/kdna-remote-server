@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Require an existing packaged `.kdna` file at the remote runtime boundary and
+  reject authoring source directories before Core loading.
+- Exercise projection tests through packed CBOR assets.
+
 ## 0.2.0 (2026-07-13)
 
 - Load authorized index and compact Runtime Capsules through KDNA Core 0.15.12.

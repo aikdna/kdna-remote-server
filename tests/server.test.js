@@ -36,12 +36,15 @@ const os = require('node:os');
 const { execFileSync } = require('node:child_process');
 
 const { startServer, stopServer, loadAsset } = require('../src/index');
+const { pack } = require('@aikdna/kdna-core');
 
 const FIXTURE_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'kdna-remote-server-fixture-'));
-const FIXTURE = path.join(FIXTURE_ROOT, 'asset-fixture');
+const FIXTURE_SOURCE = path.join(FIXTURE_ROOT, 'asset-fixture');
+const FIXTURE = path.join(FIXTURE_ROOT, 'asset-fixture.kdna');
 
 before(() => {
-  execFileSync(process.execPath, [path.join(__dirname, 'fixtures', 'create-fixture.js'), FIXTURE]);
+  execFileSync(process.execPath, [path.join(__dirname, 'fixtures', 'create-fixture.js'), FIXTURE_SOURCE]);
+  pack(FIXTURE_SOURCE, FIXTURE);
 });
 
 after(() => {
@@ -51,6 +54,13 @@ after(() => {
 function makeTestAsset() {
   return loadAsset(FIXTURE);
 }
+
+test('remote loader rejects source directories', () => {
+  assert.throws(
+    () => loadAsset(FIXTURE_SOURCE),
+    (error) => error.code === 'KDNA_ASSET_FILE_REQUIRED',
+  );
+});
 
 async function withServer(opts, fn) {
   const asset = makeTestAsset();

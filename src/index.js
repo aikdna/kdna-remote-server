@@ -12,6 +12,8 @@
 'use strict';
 
 const { loadAuthorized } = require('@aikdna/kdna-core');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const server = require('./server');
 const projection = require('./projection');
@@ -33,8 +35,14 @@ module.exports = {
   // container. The server receives two authorized Capsules and builds a
   // projection-safe view; it never decodes payload.kdnab itself.
   loadAsset: (assetPath) => {
-    const compact = loadAuthorized(assetPath, { profile: 'compact', as: 'json' });
-    const index = loadAuthorized(assetPath, { profile: 'index', as: 'json' });
+    const resolved = path.resolve(assetPath);
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile() || !resolved.endsWith('.kdna')) {
+      const error = new Error('Remote runtime requires a packaged .kdna asset file. Source directories are authoring inputs only.');
+      error.code = 'KDNA_ASSET_FILE_REQUIRED';
+      throw error;
+    }
+    const compact = loadAuthorized(resolved, { profile: 'compact', as: 'json' });
+    const index = loadAuthorized(resolved, { profile: 'index', as: 'json' });
     return {
       capsule: compact,
       context: compact.context,
