@@ -1,10 +1,11 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 (2026-07-13)
 
 - Require an existing packaged `.kdna` file at the remote runtime boundary and
   reject authoring source directories before Core loading.
 - Exercise projection tests through packed CBOR assets.
+- Align remote projection loading with KDNA Core 0.16.0.
 
 ## 0.2.0 (2026-07-13)
 
