@@ -1,13 +1,20 @@
 # @aikdna/kdna-remote-server
 
-**Self-hostable HTTP projection server for KDNA `remote`-mode assets.**
+**Experimental self-hostable HTTP projection server for KDNA `remote` assets.**
+
+KDNA makes judgment portable across models and runtimes. This repository is an
+experimental reference implementation of the remote projection part of that
+open protocol; it is not an AIKDNA-hosted service.
 
 This server holds a single `.kdna` asset locally and returns
 **task-scoped projections** — never the full payload — to
-authorized callers. It is the open-source reference
-implementation of roadmap-2026.md Story 18 and implements the
+authorized callers. It implements the candidate
 projection contract in [`specs/kdna-runtime-projection.md`][1]
 and the self-hosting invariant from [`docs/REMOTE_MODE.md`][2].
+
+The server never opens or decodes asset entries itself. It asks KDNA Core for
+authorized `index` and `compact` Runtime Capsules, then narrows the compact
+Capsule context for each remote request.
 
 [1]: https://github.com/aikdna/kdna/blob/main/specs/kdna-runtime-projection.md
 [2]: https://github.com/aikdna/kdna/blob/main/docs/REMOTE_MODE.md
@@ -18,8 +25,7 @@ and the self-hosting invariant from [`docs/REMOTE_MODE.md`][2].
 
 > The KDNA protocol MUST NOT assume a single official KDNA
 > server. Any asset creator can run their own remote server.
-> Official KDNA hosting is one deployment option, not the
-> protocol requirement.
+> No AIKDNA-hosted remote endpoint is part of the current public baseline.
 
 This server is the deployer's own. The protocol does not
 hardcode any KDNA Inc. URL; the activation server URL is a
@@ -193,17 +199,13 @@ This server enforces the following regardless of deployment:
 
 ## Deployment models
 
-This server is a building block, not a policy decision. Three
-deployment models are valid:
+This server is a building block, not a policy decision. Two public deployment
+models are described here:
 
 1. **Self-hosted (default)** — you run this on your own
    infrastructure. The asset stays on your server; your
    `.kdna.json` points at your server's URL.
-2. **KDNA hosted service** — KDNA Inc. may also offer a
-   hosted version of this server. That is a product built
-   on top of this open-source implementation. Using the
-   hosted service is optional.
-3. **Third-party hosting** — any third party can run this
+2. **Third-party hosting** — any third party can run this
    server. KDNA Inc. does not certify or endorse third-party
    hosts. The protocol is transparent to the hosting
    provider.
