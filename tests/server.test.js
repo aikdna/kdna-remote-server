@@ -27,16 +27,26 @@
 
 'use strict';
 
-const { test } = require('node:test');
+const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
 const http = require('node:http');
 const path = require('node:path');
 const fs = require('node:fs');
 const os = require('node:os');
+const { execFileSync } = require('node:child_process');
 
 const { startServer, stopServer, loadAsset } = require('../src/index');
 
-const FIXTURE = path.join(__dirname, 'fixtures', 'asset-fixture');
+const FIXTURE_ROOT = fs.mkdtempSync(path.join(os.tmpdir(), 'kdna-remote-server-fixture-'));
+const FIXTURE = path.join(FIXTURE_ROOT, 'asset-fixture');
+
+before(() => {
+  execFileSync(process.execPath, [path.join(__dirname, 'fixtures', 'create-fixture.js'), FIXTURE]);
+});
+
+after(() => {
+  fs.rmSync(FIXTURE_ROOT, { recursive: true, force: true });
+});
 
 function makeTestAsset() {
   return loadAsset(FIXTURE);
@@ -159,7 +169,7 @@ test('Story 18 server: /v1/project with task=review returns a small projection',
     assert.ok(Array.isArray(body.task_projection.constraints) ||
               body.task_projection.constraints === undefined);
     // The projection must be smaller than the full payload.
-    const fullSize = JSON.stringify(await makeTestAsset().content || {}).length;
+    const fullSize = JSON.stringify((await makeTestAsset()).context || {}).length;
     const projSize = JSON.stringify(body.task_projection).length;
     assert.ok(projSize < fullSize, `projection (${projSize}) should be smaller than full content (${fullSize})`);
   });

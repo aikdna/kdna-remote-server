@@ -29,8 +29,19 @@ module.exports = {
   verifyEntitlement: entitlement.verifyEntitlement,
   // Audit
   appendAudit: audit.appendAudit,
-  // Loader convenience: load a .kdna asset via the same
-  // primitive the CLI uses. Embedders get a ready-to-serve
-  // asset object.
-  loadAsset: (assetPath) => loadAuthorized(assetPath, { profile: 'compact', as: 'json' }),
+  // Loader convenience: Core remains the only component that reads the
+  // container. The server receives two authorized Capsules and builds a
+  // projection-safe view; it never decodes payload.kdnab itself.
+  loadAsset: (assetPath) => {
+    const compact = loadAuthorized(assetPath, { profile: 'compact', as: 'json' });
+    const index = loadAuthorized(assetPath, { profile: 'index', as: 'json' });
+    return {
+      capsule: compact,
+      context: compact.context,
+      asset_id: index.context.asset_id || compact.domain || null,
+      title: index.context.title || null,
+      version: index.context.version || null,
+      access: compact.access || 'remote',
+    };
+  },
 };

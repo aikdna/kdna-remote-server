@@ -188,7 +188,7 @@ function selectProjection(asset, req) {
   if (!asset || typeof asset !== 'object') {
     return projectionMinimal({});
   }
-  const content = asset.content || asset;
+  const content = asset.context || asset.content || asset;
   const task = (req && typeof req.task === 'string') ? req.task.toLowerCase() : '';
 
   // Map task verb to a projection strategy. Unknown tasks fall

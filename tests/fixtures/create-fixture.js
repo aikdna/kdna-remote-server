@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Create a minimal v1 source directory fixture for tests.
+ * Create a minimal current-format runtime fixture for tests.
  *
- * Uses kdna-core's buildChecksumsV1 to produce a valid v1 layout
+ * Uses kdna-core's buildChecksums to produce a valid runtime layout
  * with kdna.json + payload.kdnab + checksums.json. The asset
  * has a small judgment content suitable for projection tests.
  */
@@ -13,6 +13,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const core = require('@aikdna/kdna-core');
+const cbor = require('cbor-x');
 
 const outDir = process.argv[2] || path.join(__dirname, 'asset-fixture');
 fs.rmSync(outDir, { recursive: true, force: true });
@@ -38,7 +39,7 @@ const manifest = {
     min_loader_version: '1.0.0',
     profile: 'judgment-profile-v1',
   },
-  payload: { path: 'payload.kdnab', encoding: 'json', encrypted: false },
+  payload: { path: 'payload.kdnab', encoding: 'cbor', encrypted: false },
   access: 'public',
   description: 'Minimal test asset for kdna-remote-server tests.',
 };
@@ -91,10 +92,10 @@ const payload = {
 };
 
 fs.writeFileSync(path.join(outDir, 'kdna.json'), JSON.stringify(manifest, null, 2) + '\n');
-fs.writeFileSync(path.join(outDir, 'payload.kdnab'), JSON.stringify(payload) + '\n');
+fs.writeFileSync(path.join(outDir, 'payload.kdnab'), cbor.encode(payload));
 fs.writeFileSync(
   path.join(outDir, 'checksums.json'),
-  JSON.stringify(core.buildChecksumsV1(outDir), null, 2) + '\n',
+  JSON.stringify(core.buildChecksums(outDir), null, 2) + '\n',
 );
 
 console.log(`Wrote fixture to ${outDir}`);
