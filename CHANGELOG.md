@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1 (2026-07-13)
+
+- Normalize npm repository metadata so the source package and published
+  tarball are reproducible without registry-side rewrites.
+
 ## 0.3.0 (2026-07-13)
 
 - Require an existing packaged `.kdna` file at the remote runtime boundary and
