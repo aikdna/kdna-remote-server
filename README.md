@@ -61,7 +61,7 @@ That's it. No registration, no phone-home, no KDNA Inc. URL.
 
 ```
 Required:
-  --asset <path>           Path to a .kdna asset (or source dir)
+  --asset <path>           Path to a packaged .kdna asset file
                            the server will hold locally. The
                            server NEVER fetches assets from the
                            network.
