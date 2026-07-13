@@ -1,0 +1,38 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - name: Verify CHANGELOG has entry for the current version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if ! head -10 CHANGELOG.md | grep -q "$VERSION"; then
+            echo "::error::CHANGELOG.md is missing a top entry for v$VERSION."
+            exit 1
+          fi
+      - run: npm test
+      - name: Publish @aikdna/kdna-remote-server
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if npm view "@aikdna/kdna-remote-server@$VERSION" version >/dev/null 2>&1; then
+            echo "@aikdna/kdna-remote-server@$VERSION is already published; skipping."
+            exit 0
+          fi
+          npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

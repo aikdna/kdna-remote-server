@@ -12,6 +12,7 @@
     "bin/",
     "LICENSE",
     "NOTICE",
+    "CHANGELOG.md",
     "README.md"
   ],
   "scripts": {
