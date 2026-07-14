@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.2 (2026-07-14)
+
+- Run remote projection loading on KDNA Core 0.17.0 so hosts do not silently
+  install and execute a second Core 0.16 runtime beside the current Core.
+- Revalidate packaged loading, task projections, entitlement forwarding,
+  privacy-safe audit logs, and failure paths against Core 0.17.0.
+
 ## 0.3.1 (2026-07-13)
 
 - Normalize npm repository metadata so the source package and published
