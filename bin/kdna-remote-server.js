@@ -44,7 +44,7 @@ function parseArgs(argv) {
 }
 
 function help() {
-  return `kdna-remote-server v${pkg.version} — self-hostable projection server
+  return `kdna-remote-server ${pkg.version} — self-hostable projection server
 
 Usage:
   kdna-remote-server --asset <path-to-.kdna> [options]
@@ -135,14 +135,14 @@ async function main() {
   });
 
   process.stdout.write(
-    `kdna-remote-server v${pkg.version} listening on http://${host}:${actualPort}\n` +
+    `kdna-remote-server ${pkg.version} listening on http://${host}:${actualPort}\n` +
       `  asset:        ${asset.asset_id}@${asset.version || '?'} (${asset.title || 'untitled'})\n` +
       `  dry_run:      ${dryRun}\n` +
       `  activation:   ${activationUrl || '(none — dry-run mode)'}\n` +
       `  audit_log:    ${auditLog || '~/.kdna/remote-server-audit.jsonl'}\n` +
       `\n` +
       `Try:  curl http://${host}:${actualPort}/healthz\n` +
-      `  curl -X POST http://${host}:${actualPort}/v1/project -H 'Content-Type: application/json' -d '{"kdna_id":"${asset.asset_id}","task":"review"}\n`,
+      `  curl -X POST http://${host}:${actualPort}/project -H 'Content-Type: application/json' -d '{"kdna_id":"${asset.asset_id}","task":"review"}\n`,
   );
 
   const shutdown = (signal) => {

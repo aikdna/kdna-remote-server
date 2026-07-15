@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2026-07-16)
+
+- Replace generation-shaped asset metadata and project paths with the
+  responsibility routes `/asset/metadata` and `/project`.
+- Send entitlement refresh requests only to `/entitlements/sync` and remove
+  all compatibility aliases for the former HTTP paths.
+- Add hostile route coverage proving the removed metadata and project paths
+  return 404, and adopt natural SemVer presentation for package output and
+  future release checks.
+
 ## 0.3.2 (2026-07-14)
 
 - Run remote projection loading on KDNA Core 0.17.0 so hosts do not silently

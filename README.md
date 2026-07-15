@@ -48,7 +48,7 @@ kdna-remote-server \
 
 # 3. Test
 curl http://localhost:3000/healthz
-curl -X POST http://localhost:3000/v1/project \
+curl -X POST http://localhost:3000/project \
   -H 'Content-Type: application/json' \
   -d '{"kdna_id":"@yourname/your-asset","task":"review_article"}'
 ```
@@ -97,13 +97,13 @@ Options:
 Health check. Returns 200 with asset metadata (no judgment
 content).
 
-### `GET /v1/asset/metadata`
+### `GET /asset/metadata`
 
 Returns the asset's identity (asset_id, title, version, access)
 but NEVER any judgment content. Safe to expose to any caller
 who needs to introspect the asset.
 
-### `POST /v1/project`
+### `POST /project`
 
 Returns a task projection. The full payload is NEVER returned.
 
@@ -122,7 +122,7 @@ Request body:
 When the server is not running with `--dry-run`, include either
 `license_key` or `license_id`. The projection server forwards
 that identifier, plus the requested `kdna_id`, to the configured
-activation server's `/v1/entitlements/sync` endpoint and fails
+activation server's `/entitlements/sync` endpoint and fails
 closed if no active entitlement is returned. Entitlement
 identifiers are not written to the projection audit log.
 

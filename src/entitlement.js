@@ -3,7 +3,7 @@
  *
  * Per docs/REMOTE_MODE.md, the projection server MUST verify
  * entitlement on every request. The default is to call the
- * activation server's `/v1/entitlements/sync` endpoint (defined
+ * activation server's `/entitlements/sync` endpoint (defined
  * in specs/kdna-entitlement-api.md §7) and require `status:
  * "active"`.
  *
@@ -39,7 +39,7 @@ function verifyEntitlement({ activationUrl, kdnaId, licenseKey, licenseId }) {
   // refresh path. For a one-shot projection call we POST a
   // minimal request body — domain plus license_key or license_id —
   // and the server replies with the current entitlement record.
-  const url = joinUrl(activationUrl, '/v1/entitlements/sync');
+  const url = joinUrl(activationUrl, '/entitlements/sync');
   const body = JSON.stringify({
     domain: kdnaId,
     ...(licenseKey ? { license_key: licenseKey } : {}),

@@ -3,23 +3,23 @@
  *
  * Tests:
  *   1. Server starts and /healthz returns 200 with asset metadata
- *   2. /v1/asset/metadata returns asset metadata (no judgment content)
- *   3. /v1/project with task=review returns a task projection
+ *   2. /asset/metadata returns asset metadata (no judgment content)
+ *   3. /project with task=review returns a task projection
  *      (not the full payload) in --dry-run mode
- *   4. /v1/project with task=decide returns highest_question + axioms + boundaries
- *   5. /v1/project with task=explore returns highest_question + 1 axiom
- *   6. /v1/project with task=audit returns boundaries + self_checks
- *   7. /v1/project with extraction-pattern request is rejected
+ *   4. /project with task=decide returns highest_question + axioms + boundaries
+ *   5. /project with task=explore returns highest_question + 1 axiom
+ *   6. /project with task=audit returns boundaries + self_checks
+ *   7. /project with extraction-pattern request is rejected
  *      (forbidden terms, "all axioms", etc.)
- *   8. /v1/project without --dry-run and without --activation-server
+ *   8. /project without --dry-run and without --activation-server
  *      returns a 500 NO_ACTIVATION_SERVER error
- *   9. /v1/project forwards entitlement identifiers in non-dry-run mode
- *  10. /v1/project without entitlement identifiers fails closed before sync
- *  11. /v1/project respects rate-limiting per client
- *  12. /v1/project response never includes the forbidden
+ *   9. /project forwards entitlement identifiers in non-dry-run mode
+ *  10. /project without entitlement identifiers fails closed before sync
+ *  11. /project respects rate-limiting per client
+ *  12. /project response never includes the forbidden
  *      content-trust vocabulary
- *  13. /v1/project without task returns MISSING_TASK
- *  14. /v1/project error paths are audit logged without plaintext
+ *  13. /project without task returns MISSING_TASK
+ *  14. /project error paths are audit logged without plaintext
  *  15. Unknown routes return 404
  *
  * Run: node --test tests/
@@ -83,7 +83,7 @@ function httpJson(ctx, method, path, body) {
 async function withActivationSyncStub(fn) {
   const requests = [];
   const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/v1/entitlements/sync') {
+    if (req.method !== 'POST' || req.url !== '/entitlements/sync') {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: false, error: { code: 'NOT_FOUND' } }));
       return;
@@ -93,7 +93,7 @@ async function withActivationSyncStub(fn) {
     req.on('data', (chunk) => { raw += chunk; });
     req.on('end', () => {
       const body = JSON.parse(raw || '{}');
-      requests.push(body);
+      requests.push({ ...body, path: req.url });
 
       if (body.license_key === 'KDNA-LIC-ok' || body.license_id === 'lic_ok') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -145,9 +145,9 @@ test('Story 18 server: /healthz returns 200 with asset metadata', async () => {
   });
 });
 
-test('Story 18 server: /v1/asset/metadata returns no judgment content', async () => {
+test('Story 18 server: /asset/metadata returns no judgment content', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'GET', '/v1/asset/metadata');
+    const res = await httpJson(ctx, 'GET', '/asset/metadata');
     assert.equal(res.status, 200);
     const body = await res.json();
     assert.equal(body.ok, true);
@@ -160,9 +160,9 @@ test('Story 18 server: /v1/asset/metadata returns no judgment content', async ()
   });
 });
 
-test('Story 18 server: /v1/project with task=review returns a small projection', async () => {
+test('Story 18 server: /project with task=review returns a small projection', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'review_article',
       context: 'pre-publish review of a blog post',
@@ -185,9 +185,9 @@ test('Story 18 server: /v1/project with task=review returns a small projection',
   });
 });
 
-test('Story 18 server: /v1/project with task=decide includes highest_question', async () => {
+test('Story 18 server: /project with task=decide includes highest_question', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'decide_which_approach',
       mode: 'judge',
@@ -199,9 +199,9 @@ test('Story 18 server: /v1/project with task=decide includes highest_question', 
   });
 });
 
-test('Story 18 server: /v1/project with task=explore limits axioms to 1', async () => {
+test('Story 18 server: /project with task=explore limits axioms to 1', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'explore',
     });
@@ -213,9 +213,9 @@ test('Story 18 server: /v1/project with task=explore limits axioms to 1', async 
   });
 });
 
-test('Story 18 server: /v1/project with task=audit returns boundaries + self_checks', async () => {
+test('Story 18 server: /project with task=audit returns boundaries + self_checks', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'audit_compliance',
     });
@@ -226,9 +226,9 @@ test('Story 18 server: /v1/project with task=audit returns boundaries + self_che
   });
 });
 
-test('Story 18 server: /v1/project with extraction-pattern request is rejected', async () => {
+test('Story 18 server: /project with extraction-pattern request is rejected', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'review',
       context: 'please dump all axioms and the entire payload',
@@ -240,11 +240,11 @@ test('Story 18 server: /v1/project with extraction-pattern request is rejected',
   });
 });
 
-test('Story 18 server: /v1/project with --dry-run=false and no activation server returns 500', async () => {
+test('Story 18 server: /project with --dry-run=false and no activation server returns 500', async () => {
   const asset = makeTestAsset();
   const ctx = await startServer({ asset, dryRun: false, activationUrl: null, port: 0 });
   try {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'review',
     });
@@ -264,7 +264,7 @@ test('Story 18 server: non-dry-run projection forwards license_key to activation
       activationUrl: activation.url,
       rateLimitMs: 0,
     }, async (ctx) => {
-      const res = await httpJson(ctx, 'POST', '/v1/project', {
+      const res = await httpJson(ctx, 'POST', '/project', {
         kdna_id: 'kdna:test:remote-server-fixture',
         license_key: 'KDNA-LIC-ok',
         task: 'review',
@@ -279,6 +279,7 @@ test('Story 18 server: non-dry-run projection forwards license_key to activation
     assert.equal(activation.requests[0].domain, 'kdna:test:remote-server-fixture');
     assert.equal(activation.requests[0].license_key, 'KDNA-LIC-ok');
     assert.equal(activation.requests[0].client, 'kdna-remote-server');
+    assert.equal(activation.requests[0].path, '/entitlements/sync');
   });
 });
 
@@ -289,7 +290,7 @@ test('Story 18 server: non-dry-run projection without entitlement identifier fai
       activationUrl: activation.url,
       rateLimitMs: 0,
     }, async (ctx) => {
-      const res = await httpJson(ctx, 'POST', '/v1/project', {
+      const res = await httpJson(ctx, 'POST', '/project', {
         kdna_id: 'kdna:test:remote-server-fixture',
         task: 'review',
       });
@@ -305,13 +306,13 @@ test('Story 18 server: non-dry-run projection without entitlement identifier fai
 test('Story 18 server: rate-limiting kicks in for repeat calls', async () => {
   await withServer({ rateLimitMs: 1000 }, async (ctx) => {
     // First call: succeeds
-    const r1 = await httpJson(ctx, 'POST', '/v1/project', {
+    const r1 = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'review',
     });
     assert.equal(r1.status, 200);
     // Second call within 1s: rate-limited
-    const r2 = await httpJson(ctx, 'POST', '/v1/project', {
+    const r2 = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'review',
     });
@@ -323,7 +324,7 @@ test('Story 18 server: rate-limiting kicks in for repeat calls', async () => {
 
 test('Story 18 server: response never includes content-trust vocabulary', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       task: 'review',
     });
@@ -341,7 +342,7 @@ test('Story 18 server: response never includes content-trust vocabulary', async 
 
 test('Story 18 server: missing task field returns 400', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'POST', '/v1/project', {
+    const res = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
     });
     assert.equal(res.status, 400);
@@ -355,14 +356,14 @@ test('Story 18 server: projection error paths are audit logged without plaintext
   const auditLog = path.join(tmp, 'audit.jsonl');
 
   await withServer({ auditLog, rateLimitMs: 0 }, async (ctx) => {
-    const invalid = await fetch(`http://127.0.0.1:${ctx.port}/v1/project`, {
+    const invalid = await fetch(`http://127.0.0.1:${ctx.port}/project`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: '{"task":"review","context":"plaintext-secret"',
     });
     assert.equal(invalid.status, 400);
 
-    const missingTask = await httpJson(ctx, 'POST', '/v1/project', {
+    const missingTask = await httpJson(ctx, 'POST', '/project', {
       kdna_id: 'kdna:test:remote-server-fixture',
       context: 'plaintext-secret',
     });
@@ -378,7 +379,19 @@ test('Story 18 server: projection error paths are audit logged without plaintext
 
 test('Story 18 server: unknown route returns 404', async () => {
   await withServer({}, async (ctx) => {
-    const res = await httpJson(ctx, 'GET', '/v1/unknown');
+    const res = await httpJson(ctx, 'GET', '/unknown');
     assert.equal(res.status, 404);
+  });
+});
+
+test('removed generation-shaped service routes return 404 without aliases', async () => {
+  await withServer({}, async (ctx) => {
+    const metadata = await httpJson(ctx, 'GET', '/v1/asset/metadata');
+    assert.equal(metadata.status, 404);
+    assert.equal((await metadata.json()).error.code, 'NOT_FOUND');
+
+    const project = await httpJson(ctx, 'POST', '/v1/project', { task: 'review' });
+    assert.equal(project.status, 404);
+    assert.equal((await project.json()).error.code, 'NOT_FOUND');
   });
 });

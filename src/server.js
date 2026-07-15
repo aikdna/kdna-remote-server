@@ -76,7 +76,7 @@ function makeRequestHandler(opts) {
     }
 
     // Asset metadata (introspection; no judgment content)
-    if (req.method === 'GET' && url.pathname === '/v1/asset/metadata') {
+    if (req.method === 'GET' && url.pathname === '/asset/metadata') {
       json(res, 200, {
         ok: true,
         asset: {
@@ -91,7 +91,7 @@ function makeRequestHandler(opts) {
     }
 
     // Projection endpoint
-    if (req.method === 'POST' && url.pathname === '/v1/project') {
+    if (req.method === 'POST' && url.pathname === '/project') {
       // Rate limit per client
       const now = Date.now();
       const last = lastSeen.get(clientKey) || 0;
