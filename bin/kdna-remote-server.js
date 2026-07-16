@@ -3,7 +3,7 @@
  * kdna-remote-server — CLI entry (Story 18)
  *
  * Self-hostable HTTP projection server. See README.md for
- * self-hosting instructions (run on any Node 18+ machine).
+ * self-hosting instructions (run on any Node 22.9+ machine).
  *
  * Usage:
  *   kdna-remote-server --asset <path-to-.kdna> [--port 3000]
@@ -19,7 +19,7 @@
 
 const path = require('node:path');
 const fs = require('node:fs');
-const { loadAuthorized } = require('@aikdna/kdna-core');
+const { loadAsset } = require('../src/index');
 const { startServer, stopServer } = require('../src/server');
 const pkg = require('../package.json');
 
@@ -50,7 +50,7 @@ Usage:
   kdna-remote-server --asset <path-to-.kdna> [options]
 
 Required:
-  --asset <path>          Path to a .kdna asset (or source dir) the
+  --asset <path>          Path to a packaged .kdna asset the
                           server will hold locally. The server
                           NEVER fetches assets from the network.
 
@@ -74,7 +74,7 @@ Options:
   --help                  Print this help.
 
 Self-hosting (default):
-  Run this on any Node 18+ server. Point --activation-server at
+  Run this on any Node 22.9+ server. Point --activation-server at
   your own activation server (also self-hostable). The protocol
   does NOT depend on any KDNA Inc. endpoint.
 
@@ -104,7 +104,7 @@ async function main() {
   // assets at request time.
   let asset;
   try {
-    asset = loadAuthorized(path.resolve(assetPath), { profile: 'compact', as: 'json' });
+    asset = loadAsset(path.resolve(assetPath));
   } catch (e) {
     process.stderr.write(`Error: failed to load asset: ${e.message}\n`);
     process.exit(1);

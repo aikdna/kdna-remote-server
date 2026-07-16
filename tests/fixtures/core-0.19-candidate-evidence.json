@@ -1,0 +1,33 @@
+{
+  "evidence_kind": "candidate_source_pack",
+  "package": "@aikdna/kdna-core",
+  "version": "0.19.0",
+  "git_head": "a257b92345af57e6fb20215576bc976a5291b297",
+  "source_worktree_clean": true,
+  "pack": {
+    "status": "candidate_source_pack_not_registry_artifact",
+    "npm_client": "11.17.0",
+    "filename": "aikdna-kdna-core-0.19.0.tgz",
+    "size": 111763,
+    "unpacked_size": 512384,
+    "entry_count": 39,
+    "sha1": "1a479f3090df325590f12fc5a0cabdf63738bcb1",
+    "sha256": "aaf52930605e8f16b9d842c39a21b94d1c638afdffec501447691851a644f886",
+    "sha512": "sha512-GTiAxO71vxbyZzHcS/JrkGN38w4ZKcGpTfEzHtfQg/9d0/esydd8vsKssXuepM6dJefx+AcbY+EO738KX6dLzQ==",
+    "reproducible_runs": 2
+  },
+  "registry_artifact": null,
+  "files": {
+    "src/runtime-contract.js": "abbf13855cd50a9f6358ba19a8145d3b5988abd065fa8098dac761ac31874e5c",
+    "src/runtime-capsule.js": "9bc25c0e07114314b3b515c1c929a61fe53212ccc4f1d1dd31baba4dd9bf53e5",
+    "schema/runtime-capsule.schema.json": "5ecabe3c02bc09e638c3391d8747c5d48b0f357776ca3b837bc2e03310dcc339",
+    "schema/consumption-plan.schema.json": "f73c52884c59e1566d4e6121e42b9e2dfed43ffbee6452b6239a56cf8262785f",
+    "schema/agent-host-capabilities.schema.json": "00ab3aeceffae5061faeecfdb82ac95afde4c60ad73faa796b2d7bd463e2e834",
+    "schema/agent-host-request.schema.json": "e827bc2ca51937c31d9ff089b9ae9b37f154ae69836d778f0027480f0d2ee693",
+    "schema/agent-host-receipt.schema.json": "ecdac9d9b6670ead0cf94b3c307b7d9580e4eacdf0d1ce683d2b100b59a3f115",
+    "schema/judgment-trace.schema.json": "a260e5abbcc68bf8df11ba738b5d475901b2950668c4718e415355adc723c7b0",
+    "schema/digest-evidence.schema.json": "294939c0a230639a1ae7b059a28d87310ead350ff03d9d6cf46e112acf3d9f75",
+    "test/fixtures/golden-single-asset.json": "7eb40c592abb1a62220d51a35ae9963c50f05e21a81ea45245c67f0817b0613c",
+    "test/fixtures/golden-single-asset-payload.kdnab": "0d5f3b5dd32b6c87d2db88a74b8aa131338a85535f1ac4435cfa8168b93c6deb"
+  }
+}

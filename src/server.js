@@ -31,9 +31,16 @@
 const http = require('node:http');
 const { URL } = require('node:url');
 const crypto = require('node:crypto');
-const { selectProjection } = require('./projection');
-const { verifyEntitlement } = require('./entitlement');
+const { classifyTask, selectProjection } = require('./projection');
+const {
+  MACHINE_FINGERPRINT_RE,
+  activationEndpoint,
+  machineFingerprint,
+  verifyEntitlement,
+} = require('./entitlement');
 const { appendAudit } = require('./audit');
+const MAX_REQUEST_BODY_BYTES = 64 * 1024;
+const REQUEST_BASE_URL = 'http://kdna.invalid';
 
 /**
  * Build the HTTP request handler.
@@ -51,11 +58,28 @@ function makeRequestHandler(opts) {
   const asset = opts.asset;
   const activationUrl = opts.activationUrl || null;
   const dryRun = Boolean(opts.dryRun);
+  assertSafeBindPolicy(opts.host || '127.0.0.1', dryRun);
+  if (!dryRun && activationUrl) activationEndpoint(activationUrl);
   const rateLimitMs = typeof opts.rateLimitMs === 'number' ? opts.rateLimitMs : 100;
+  const runtimeMachineFingerprint = opts.machineFingerprint || machineFingerprint();
+  if (!MACHINE_FINGERPRINT_RE.test(runtimeMachineFingerprint)) {
+    throw new Error('remote runtime machine identity is unavailable');
+  }
+  if (typeof asset.asset_id !== 'string' || asset.asset_id.length === 0) {
+    throw new Error('loaded Runtime Capsule has no canonical asset identity');
+  }
   const lastSeen = new Map(); // clientKey -> last request timestamp
 
   async function handle(req, res) {
-    const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
+    let url;
+    try {
+      assertValidHostHeader(req.headers.host);
+      url = new URL(req.url, REQUEST_BASE_URL);
+      if (url.origin !== REQUEST_BASE_URL) throw new Error('absolute request targets are forbidden');
+    } catch {
+      jsonError(res, 400, 'INVALID_REQUEST_TARGET', 'request target or Host header is invalid');
+      return;
+    }
     const clientKey = req.socket.remoteAddress || 'unknown';
 
     // Health check (always 200, no audit)
@@ -107,17 +131,32 @@ function makeRequestHandler(opts) {
       }
       lastSeen.set(clientKey, now);
 
-      let body = '';
+      let bodyBytes = 0;
+      let bodyChunks = [];
+      let tooLarge = false;
       req.on('data', (chunk) => {
-        body += chunk;
-        if (body.length > 64 * 1024) {
-          req.destroy();
+        if (tooLarge) return;
+        bodyBytes += chunk.length;
+        if (bodyBytes > MAX_REQUEST_BODY_BYTES) {
+          tooLarge = true;
+          bodyChunks = [];
+          appendAudit({
+            event: 'projection',
+            result: 'request_too_large',
+            client: clientKey,
+            asset_id: asset.asset_id,
+          }, opts.auditLog);
           jsonError(res, 413, 'REQUEST_TOO_LARGE', 'request body exceeds 64KB');
+          return;
         }
+        bodyChunks.push(Buffer.from(chunk));
       });
       req.on('end', async () => {
+        if (tooLarge) return;
         let payload;
         try {
+          const body = new TextDecoder('utf-8', { fatal: true })
+            .decode(Buffer.concat(bodyChunks, bodyBytes));
           payload = body.length === 0 ? {} : JSON.parse(body);
         } catch (e) {
           appendAudit({
@@ -126,7 +165,17 @@ function makeRequestHandler(opts) {
             client: clientKey,
             asset_id: asset.asset_id,
           }, opts.auditLog);
-          jsonError(res, 400, 'INVALID_JSON', `request body is not valid JSON: ${e.message}`);
+          jsonError(res, 400, 'INVALID_JSON', 'request body is not valid JSON');
+          return;
+        }
+        if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+          appendAudit({
+            event: 'projection',
+            result: 'invalid_request_body',
+            client: clientKey,
+            asset_id: asset.asset_id,
+          }, opts.auditLog);
+          jsonError(res, 400, 'INVALID_REQUEST_BODY', 'request body must be a JSON object');
           return;
         }
 
@@ -136,6 +185,38 @@ function makeRequestHandler(opts) {
         const task = typeof payload.task === 'string' ? payload.task : '';
         const context = typeof payload.context === 'string' ? payload.context : '';
         const mode = typeof payload.mode === 'string' ? payload.mode : 'judge';
+
+        if (Object.hasOwn(payload, 'machine_fingerprint')) {
+          appendAudit({
+            event: 'projection',
+            result: 'caller_machine_identity_rejected',
+            client: clientKey,
+            asset_id: asset.asset_id,
+          }, opts.auditLog);
+          jsonError(
+            res,
+            400,
+            'CALLER_MACHINE_FINGERPRINT_FORBIDDEN',
+            'machine identity is owned by the remote runtime deployment',
+          );
+          return;
+        }
+
+        if (Object.hasOwn(payload, 'kdna_id') && kdnaId !== asset.asset_id) {
+          appendAudit({
+            event: 'projection',
+            result: 'asset_identity_mismatch',
+            client: clientKey,
+            asset_id: asset.asset_id,
+          }, opts.auditLog);
+          jsonError(
+            res,
+            400,
+            'ASSET_ID_MISMATCH',
+            'requested asset identity does not match the loaded asset',
+          );
+          return;
+        }
 
         if (!task) {
           appendAudit({
@@ -172,9 +253,10 @@ function makeRequestHandler(opts) {
           try {
             const result = await verifyEntitlement({
               activationUrl,
-              kdnaId: kdnaId || asset.asset_id,
+              kdnaId: asset.asset_id,
               licenseKey,
               licenseId,
+              machineFingerprint: runtimeMachineFingerprint,
             });
             if (!result.ok) {
               appendAudit({
@@ -198,9 +280,9 @@ function makeRequestHandler(opts) {
               result: 'activation_server_error',
               client: clientKey,
               asset_id: asset.asset_id,
-              reason: e.message,
-            }, opts.auditLog);
-            jsonError(res, 502, 'ACTIVATION_SERVER_ERROR', e.message);
+                reason: 'ACTIVATION_SERVER_ERROR',
+              }, opts.auditLog);
+            jsonError(res, 502, 'ACTIVATION_SERVER_ERROR', 'activation verification failed');
             return;
           }
         }
@@ -209,15 +291,23 @@ function makeRequestHandler(opts) {
         const projection = selectProjection(asset, { task, context, mode });
 
         const traceId = crypto.randomUUID();
-        appendAudit({
+        const auditPersisted = appendAudit({
           event: 'projection',
           result: 'success',
           client: clientKey,
           asset_id: asset.asset_id,
-          task,
-          mode,
+          task_class: classifyTask(task),
           trace_id: traceId,
         }, opts.auditLog);
+        if (!auditPersisted) {
+          jsonError(
+            res,
+            503,
+            'AUDIT_UNAVAILABLE',
+            'projection audit evidence could not be persisted',
+          );
+          return;
+        }
 
         json(res, 200, {
           task_projection: projection,
@@ -244,6 +334,26 @@ function json(res, status, body) {
 
 function jsonError(res, status, code, message) {
   json(res, status, { ok: false, error: { code, message, retryable: false } });
+}
+
+function assertValidHostHeader(host) {
+  if (typeof host !== 'string' || host.length === 0) throw new Error('Host header is required');
+  const parsed = new URL(`http://${host}`);
+  if (
+    parsed.username ||
+    parsed.password ||
+    parsed.pathname !== '/' ||
+    parsed.search ||
+    parsed.hash
+  ) {
+    throw new Error('Host header is invalid');
+  }
+}
+
+function assertSafeBindPolicy(host, dryRun) {
+  if (dryRun && host !== '127.0.0.1' && host !== '::1') {
+    throw new Error('dry-run mode may bind only to an exact loopback address');
+  }
 }
 
 /**
@@ -291,9 +401,11 @@ function stopServer(server) {
 
 module.exports = {
   makeRequestHandler,
+  assertSafeBindPolicy,
   startServer,
   stopServer,
   detectExtractionAttempt,
+  MAX_REQUEST_BODY_BYTES,
   json,
   jsonError,
 };

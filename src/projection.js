@@ -20,25 +20,12 @@
  *   - Extraction-pattern detection happens at the HTTP layer.
  *   - Audit events are emitted at the HTTP layer.
  *
- * The projection itself MUST NOT include the FORBIDDEN_OUTPUT_TERMS
- * vocabulary (per kdna-core's FORBIDDEN_OUTPUT_TERMS list):
- *   "trusted", "recommended", "high_quality", "officially_approved",
- *   "quality_badge"
- *
- * The server has no opinion on whether the projection is "good",
- * "official", or "trusted". It is a structural selection only.
+ * The server adds no content-certification fields or claims. Selected asset
+ * text is preserved verbatim: an asset may legitimately discuss words such
+ * as "official" or "trusted", and this transport must not rewrite judgment.
  */
 
 'use strict';
-
-const FORBIDDEN_OUTPUT_TERMS = Object.freeze([
-  'trusted',
-  'recommended',
-  'high_quality',
-  'officially_approved',
-  'quality_badge',
-  'official',
-]);
 
 const MAX_AXIOMS_PER_PROJECTION = 3;
 const MAX_CONSTRAINTS_PER_PROJECTION = 3;
@@ -173,6 +160,15 @@ function projectionMinimal(content) {
   };
 }
 
+function classifyTask(task) {
+  const normalized = typeof task === 'string' ? task.toLowerCase() : '';
+  if (/^review|^evaluate|^assess/.test(normalized)) return 'review';
+  if (/^decide|^choose|^select/.test(normalized)) return 'decide';
+  if (/^explore|^discover|^browse/.test(normalized)) return 'explore';
+  if (/^audit|^comply|^check/.test(normalized)) return 'audit';
+  return 'minimal';
+}
+
 /**
  * Project the asset to a task-scoped response.
  *
@@ -188,52 +184,34 @@ function selectProjection(asset, req) {
   if (!asset || typeof asset !== 'object') {
     return projectionMinimal({});
   }
-  const content = asset.context || asset.content || asset;
-  const task = (req && typeof req.task === 'string') ? req.task.toLowerCase() : '';
+  const raw = asset.context || asset.content || asset;
+  const payload = raw?.payload;
+  const content = payload && typeof payload === 'object'
+    ? {
+        ...(payload.core || {}),
+        patterns: payload.patterns || [],
+        self_checks: payload.reasoning?.self_check || [],
+        failure_modes: payload.reasoning?.failure_modes || [],
+      }
+    : raw;
+  const taskClass = classifyTask(req && req.task);
 
   // Map task verb to a projection strategy. Unknown tasks fall
   // back to the minimal projection (highest_question only).
   let proj;
-  if (/^review|^evaluate|^assess/.test(task)) {
+  if (taskClass === 'review') {
     proj = projectionReview(content);
-  } else if (/^decide|^choose|^select/.test(task)) {
+  } else if (taskClass === 'decide') {
     proj = projectionDecide(content);
-  } else if (/^explore|^discover|^browse/.test(task)) {
+  } else if (taskClass === 'explore') {
     proj = projectionExplore(content);
-  } else if (/^audit|^comply|^check/.test(task)) {
+  } else if (taskClass === 'audit') {
     proj = projectionAudit(content);
   } else {
     proj = projectionMinimal(content);
   }
 
-  // Defensive scrub: strip any accidental FORBIDDEN_OUTPUT_TERMS
-  // vocabulary from string fields. The projection itself is
-  // structural, but a downstream string could carry these words
-  // from the asset's content. The server is not in the business
-  // of endorsing content; the words are scrubbed.
-  return scrubForbiddenTerms(proj);
-}
-
-function scrubForbiddenTerms(obj) {
-  if (typeof obj === 'string') {
-    let s = obj;
-    for (const term of FORBIDDEN_OUTPUT_TERMS) {
-      const re = new RegExp(`\\b${term}\\b`, 'gi');
-      s = s.replace(re, '[redacted]');
-    }
-    return s;
-  }
-  if (Array.isArray(obj)) {
-    return obj.map(scrubForbiddenTerms);
-  }
-  if (obj && typeof obj === 'object') {
-    const out = {};
-    for (const [k, v] of Object.entries(obj)) {
-      out[k] = scrubForbiddenTerms(v);
-    }
-    return out;
-  }
-  return obj;
+  return proj;
 }
 
 module.exports = {
@@ -243,6 +221,5 @@ module.exports = {
   projectionExplore,
   projectionAudit,
   projectionMinimal,
-  scrubForbiddenTerms,
-  FORBIDDEN_OUTPUT_TERMS,
+  classifyTask,
 };

@@ -32,8 +32,9 @@ module.exports = {
   // Audit
   appendAudit: audit.appendAudit,
   // Loader convenience: Core remains the only component that reads the
-  // container. The server receives two authorized Capsules and builds a
-  // projection-safe view; it never decodes payload.kdnab itself.
+  // container. The server receives one authorized full Runtime Capsule and
+  // narrows it at the HTTP projection boundary; it never decodes
+  // payload.kdnab itself.
   loadAsset: (assetPath) => {
     const resolved = path.resolve(assetPath);
     if (!fs.existsSync(resolved) || !fs.statSync(resolved).isFile() || !resolved.endsWith('.kdna')) {
@@ -41,15 +42,27 @@ module.exports = {
       error.code = 'KDNA_ASSET_FILE_REQUIRED';
       throw error;
     }
-    const compact = loadAuthorized(resolved, { profile: 'compact', as: 'json' });
-    const index = loadAuthorized(resolved, { profile: 'index', as: 'json' });
+    const capsule = loadAuthorized(resolved, { profile: 'full', as: 'json' });
+    if (
+      capsule?.type !== 'kdna.runtime-capsule' ||
+      capsule.contract_version !== '0.1.0' ||
+      capsule.profile !== 'full' ||
+      !capsule.asset ||
+      typeof capsule.asset.asset_id !== 'string' ||
+      !capsule.context ||
+      typeof capsule.context !== 'object'
+    ) {
+      const error = new Error('Core did not return the required full Runtime Capsule contract.');
+      error.code = 'KDNA_RUNTIME_CAPSULE_REQUIRED';
+      throw error;
+    }
     return {
-      capsule: compact,
-      context: compact.context,
-      asset_id: index.context.asset_id || compact.domain || null,
-      title: index.context.title || null,
-      version: index.context.version || null,
-      access: compact.access || 'remote',
+      capsule,
+      context: capsule.context,
+      asset_id: capsule.asset.asset_id,
+      title: capsule.context.manifest?.title || null,
+      version: capsule.asset.version,
+      access: capsule.access,
     };
   },
 };

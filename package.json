@@ -17,13 +17,23 @@
   ],
   "scripts": {
     "start": "node bin/kdna-remote-server.js",
-    "test": "node --test tests/*.test.js"
+    "check:public-surface": "node scripts/check-public-surface.js",
+    "check:protocol-names": "node scripts/check-protocol-names.js",
+    "check:runtime-candidate": "node scripts/check-runtime-candidate.js",
+    "test": "node scripts/run-tests.js",
+    "test:core-candidate-tar": "node scripts/verify-core-candidate-tar.js",
+    "release:readiness": "node scripts/release-readiness.js",
+    "release:evidence": "node scripts/generate-release-evidence.js",
+    "release:registry-guard": "node scripts/registry-duplicate-guard.js",
+    "release:publish-verified": "node scripts/publish-verified-artifact.js",
+    "release:check": "node scripts/run-release-check.js",
+    "prepublishOnly": "node scripts/run-release-check.js"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.9.0"
   },
   "dependencies": {
-    "@aikdna/kdna-core": "0.17.0"
+    "@aikdna/kdna-core": "0.19.0"
   },
   "devDependencies": {
     "cbor-x": "1.6.4"

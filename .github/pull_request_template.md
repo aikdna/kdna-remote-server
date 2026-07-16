@@ -9,11 +9,11 @@ The motivation for this change.
 ## Verification
 
 ```bash
-npm test  # all tests must pass
+node scripts/run-tests.js
 ```
 
 ## Checklist
 
-- [ ] `npm test` passes
+- [ ] `node scripts/run-tests.js` passes
 - [ ] CHANGELOG.md updated (if applicable)
 - [ ] `Signed-off-by` present in all commits (`git commit -s`)

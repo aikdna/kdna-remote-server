@@ -17,11 +17,11 @@ If proposing a feature, tag with `[RFC]` and describe the problem before the sol
 3. All commits must be signed off: `git commit -s`
 4. Use the PR template. Title format: `area: what changed`.
 5. Verify before opening:
-   - `npm test` passes
-   - `npm run lint` passes (if available)
-   - `kdna validate` works against a test .kdna file
-   - For CLI changes: verify `kdna --help` output is correct
-   - For asset changes: include SHA256 and validation output
+   - use Node 22.9.0 or newer;
+   - install with `node scripts/trusted-npm.js ci --ignore-scripts --registry=https://registry.npmjs.org/ --@aikdna:registry=https://registry.npmjs.org/`;
+   - run `node scripts/run-tests.js`;
+   - if candidate binding changes, reproduce the exact pinned Core commit with
+     `KDNA_CORE_CANDIDATE_SOURCE=/canonical/path/to/kdna node scripts/verify-core-candidate-tar.js`.
 
 PRs that fail any verification command will be reviewed with requested changes.
 
@@ -31,14 +31,13 @@ All commits must include a `Signed-off-by:` line. Use `git commit -s` to add it 
 
 This certifies that you wrote the code or have the right to submit it under the project's license (Apache-2.0). No CLA is required.
 
-## ANTI-PATTERNS
+## Repository boundaries
 
-Do **not** attempt to restore, shim, or reference any of these removed surfaces:
-- `legacy` — deleted in 0.27.0 hard cutover
-- an alternate numbered protocol generation — never existed; do not create
-- `registry` — deferred to future RFC (see decisions/0003)
-- `install` — no distribution in the 0.7 baseline (the 0.7 line is the public stable line as of 2026-05-22; pre-0.7 "Core GA" terminology is superseded)
-- `help-legacy` — deleted alongside legacy surface
-- `setup` / `verify` — removed commands; use `kdna create` and `kdna validate`
+This repository owns the self-hosted HTTP projection boundary. KDNA Core is the
+only component that decodes packaged assets, and the Activation server is the
+authority for entitlement state. Do not reimplement either contract here.
 
-If your PR touches any of the above, it will be rejected. Read `decisions/` for rationale.
+Do not introduce generation-style version labels, compatibility aliases for
+removed HTTP paths, source-directory loading, caller-controlled machine
+identity, full-payload responses, or public coordination files. Natural SemVer
+coordinates identify real package releases only.

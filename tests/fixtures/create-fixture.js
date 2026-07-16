@@ -25,7 +25,7 @@ fs.writeFileSync(
 );
 
 const manifest = {
-  kdna_version: '1.0',
+  format_version: '0.1.0',
   asset_id: 'kdna:test:remote-server-fixture',
   asset_uid: 'urn:uuid:00000000-0000-4000-8000-000000000099',
   asset_type: 'domain',
@@ -36,8 +36,9 @@ const manifest = {
   updated_at: '2026-06-28T00:00:00.000Z',
   creator: { name: 'Test Creator', id: 'test-creator' },
   compatibility: {
-    min_loader_version: '1.0.0',
-    profile: 'judgment-profile-v1',
+    min_loader_version: '0.19.0',
+    profile: 'kdna.payload.judgment',
+    profile_version: '0.1.0',
   },
   payload: { path: 'payload.kdnab', encoding: 'cbor', encrypted: false },
   access: 'public',
@@ -45,7 +46,8 @@ const manifest = {
 };
 
 const payload = {
-  profile: 'judgment-profile-v1',
+  profile: 'kdna.payload.judgment',
+  profile_version: '0.1.0',
   core: {
     highest_question: 'What is the safest default action when judgment is uncertain?',
     axioms: [
@@ -82,7 +84,11 @@ const payload = {
   scenarios: [],
   cases: [],
   reasoning: {
-    self_checks: [],
+    self_check: [
+      'Did I distinguish between what the operator asked and what I should do?',
+      'Did I make any irreversible change?',
+      'Did I record the assumption I made?',
+    ],
     failure_modes: [
       { mode: 'silent_execution', description: 'Acting without surfacing the decision to the operator.' },
       { mode: 'over_automation', description: 'Doing more than the operator asked.' },

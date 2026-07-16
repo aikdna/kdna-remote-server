@@ -12,9 +12,9 @@ authorized callers. It implements the candidate
 projection contract in [`specs/kdna-runtime-projection.md`][1]
 and the self-hosting invariant from [`docs/REMOTE_MODE.md`][2].
 
-The server never opens or decodes asset entries itself. It asks KDNA Core for
-authorized `index` and `compact` Runtime Capsules, then narrows the compact
-Capsule context for each remote request.
+The server never opens or decodes asset entries itself. It asks KDNA Core 0.19.0
+for one authorized `full` Runtime Capsule, then narrows that Capsule context at
+the HTTP boundary for each remote request.
 
 [1]: https://github.com/aikdna/kdna/blob/main/specs/kdna-runtime-projection.md
 [2]: https://github.com/aikdna/kdna/blob/main/docs/REMOTE_MODE.md
@@ -37,7 +37,7 @@ deployer-controlled configuration value (see
 ## Quick start (self-hosting)
 
 ```bash
-# 1. Install (any Node 18+ server)
+# 1. Install (any Node 22.9+ server)
 npm install -g @aikdna/kdna-remote-server
 
 # 2. Point at a .kdna asset on local disk
@@ -50,10 +50,11 @@ kdna-remote-server \
 curl http://localhost:3000/healthz
 curl -X POST http://localhost:3000/project \
   -H 'Content-Type: application/json' \
-  -d '{"kdna_id":"@yourname/your-asset","task":"review_article"}'
+  -d '{"kdna_id":"kdna:yourname:your-asset","license_key":"<license-key>","task":"review_article"}'
 ```
 
-That's it. No registration, no phone-home, no KDNA Inc. URL.
+That's it. No AIKDNA registration or hardcoded AIKDNA endpoint. Entitlement
+checks go only to the activation server selected by the deployer.
 
 ---
 
@@ -79,7 +80,8 @@ Options:
                            hardcoded.
   --dry-run                Skip entitlement verification. For
                            local development without a real
-                           activation server.
+                           activation server. Dry-run may bind
+                           only to exact 127.0.0.1 or ::1.
   --audit-log <path>       Append audit events to this file.
                            Default
                            ~/.kdna/remote-server-audit.jsonl.
@@ -111,20 +113,30 @@ Request body:
 
 ```json
 {
-  "kdna_id": "@yourname/your-asset@1.0.0",
-  "license_key": "KDNA-LIC-customer-1",
+  "kdna_id": "kdna:yourname:your-asset",
+  "license_key": "<license-key>",
+  "license_id": "lic_customer_1",
   "task": "review_article",
   "context": "Pre-publish review of a technical blog post",
   "mode": "judge"
 }
 ```
 
-When the server is not running with `--dry-run`, include either
-`license_key` or `license_id`. The projection server forwards
-that identifier, plus the requested `kdna_id`, to the configured
-activation server's `/entitlements/sync` endpoint and fails
-closed if no active entitlement is returned. Entitlement
-identifiers are not written to the projection audit log.
+When the server is not running with `--dry-run`, `license_key` is required.
+`license_id` is optional and, when supplied, becomes an additional exact
+binding. `kdna_id` is also optional, but it must exactly match the canonical
+identity in the loaded Runtime Capsule when present. Caller-supplied machine
+identity is forbidden: the remote deployment derives its own stable machine
+fingerprint and sends it to the configured activation server. Projection is
+allowed only when the response returns a canonical nonempty `license_id`, the
+exact asset domain and machine fingerprint, `status: "active"`,
+`revoked: false`, and `require_machine_binding: true`. License keys and raw
+machine fingerprints are never written to the projection audit log.
+
+Activation transport must use a canonical HTTPS origin. Plain HTTP is accepted
+only for exact `127.0.0.1` or `[::1]` development origins. Credentials, paths,
+queries, fragments, redirects, non-JSON responses, and responses over 64 KiB
+are rejected before any projection is returned.
 
 Response body (200):
 
@@ -137,7 +149,7 @@ Response body (200):
   },
   "projection_policy": "remote",
   "trace_id": "uuid",
-  "asset_id": "@yourname/your-asset",
+  "asset_id": "kdna:yourname:your-asset",
   "asset_version": "1.0.0"
 }
 ```
@@ -177,20 +189,35 @@ This server enforces the following regardless of deployment:
 - **No full payload return** — the projection is structurally
   smaller than the content. The HTTP layer never sends
   `asset.content` or any equivalent.
-- **Layer isolation** — the response never includes the
-  content-trust vocabulary (`official`, `trusted`,
-  `recommended`, `high_quality`, `quality_badge`,
-  `officially_approved`). If a downstream string accidentally
-  contains one of these words, it is scrubbed at the response
-  boundary.
+- **Layer isolation without semantic censorship** — the server never adds
+  content-certification fields or claims. Selected asset text is preserved
+  verbatim even when the asset itself discusses words such as “official”,
+  “trusted”, or “recommended”.
 - **Extraction detection** — requests that look like bulk
   extraction ("all axioms", "dump", "extract every", etc.) are
   rejected with `EXTRACTION_BLOCKED`.
 - **Rate limiting** — minimum gap of `--rate-limit-ms` per
   client. The default is 100ms.
-- **Audit log** — every projection request is recorded to the
-  audit log (default `~/.kdna/remote-server-audit.jsonl`) with
-  no plaintext content.
+- **Deployment-bound authorization** — every non-dry-run request requires a
+  license key and an exact Activation response bound to the loaded asset and
+  the server's own machine fingerprint. A caller cannot override either
+  identity.
+- **Bounded secure Activation transport** — entitlement credentials are sent
+  only to the configured canonical HTTPS origin (or exact loopback HTTP for
+  development); redirects are never followed and responses are capped at
+  64 KiB.
+- **Bounded origin-independent HTTP parsing** — projection request bodies are
+  capped by UTF-8 bytes at 64 KiB; malformed Host headers and absolute request
+  targets receive one stable 400 response and never influence route parsing.
+- **Loopback-only dry-run** — authorization bypass can bind only to exact
+  `127.0.0.1` or `::1`; wildcard, hostname, and external binds fail at startup.
+- **Audit log** — a successful projection is returned only after its event is
+  appended and synchronized to one regular audit file (default
+  `~/.kdna/remote-server-audit.jsonl`). If persistence fails, the server
+  returns `AUDIT_UNAVAILABLE` without projection content. Rejected requests
+  remain rejected even if their best-effort audit write also fails. Records
+  contain no request plaintext, raw task/mode, license key, or raw machine
+  fingerprint.
 - **No network fetches** — the server holds the asset in
   memory from `--asset`. No external asset URLs are honored
   at request time.
@@ -219,8 +246,10 @@ The protocol does not control which model you pick. You do.
 ```bash
 git clone https://github.com/aikdna/kdna-remote-server
 cd kdna-remote-server
-npm install
-npm test
+node scripts/trusted-npm.js ci --ignore-scripts \
+  --registry=https://registry.npmjs.org/ \
+  --@aikdna:registry=https://registry.npmjs.org/
+node scripts/run-tests.js
 ```
 
 The tests start the server in `--dry-run` mode on an
@@ -232,6 +261,6 @@ OS-assigned port. No external services are required.
 
 Apache 2.0. See [LICENSE](./LICENSE).
 
-This server does not transmit, store, or certify judgment
-content. It is a structural selection layer; trust is the
-consumer's decision, not the server's claim.
+This server does not transmit or store the full judgment payload outside its
+local runtime. It returns only task-scoped projections and makes no content
+certification claim; interpretation remains the consumer's responsibility.
