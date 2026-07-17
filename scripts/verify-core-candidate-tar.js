@@ -7,6 +7,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const {
+  readTarFileEntries,
   resolveTrustedNpmInvocation,
   verifyCandidateBinding,
 } = require('./runtime-candidate-binding');
@@ -168,6 +169,28 @@ function packOnce(invocation, source, destination) {
   return fs.readFileSync(path.join(destination, reports[0].filename));
 }
 
+function assertInstallEquivalent(referenceBytes, candidateBytes) {
+  const referenceEntries = readTarFileEntries(referenceBytes);
+  const candidateEntries = readTarFileEntries(candidateBytes);
+  const reference = new Map(referenceEntries.map((entry) => [entry.path, entry]));
+  const candidate = new Map(candidateEntries.map((entry) => [entry.path, entry]));
+  const referencePaths = [...reference.keys()].sort();
+  assert(
+    JSON.stringify([...candidate.keys()].sort()) === JSON.stringify(referencePaths),
+    'candidate artifact differs from the exact CI-pinned source',
+  );
+  for (const entryPath of referencePaths) {
+    const expected = reference.get(entryPath);
+    const actual = candidate.get(entryPath);
+    assert(actual.size === expected.size, `candidate artifact file size differs: ${entryPath}`);
+    assert(actual.mode === expected.mode, `candidate artifact file mode differs: ${entryPath}`);
+    assert(
+      actual.bytes.equals(expected.bytes),
+      `candidate artifact file bytes differ: ${entryPath}`,
+    );
+  }
+}
+
 function verifyCoreCandidateSource({
   root = ROOT,
   repositoryInput = process.env.KDNA_CORE_CANDIDATE_SOURCE,
@@ -192,10 +215,9 @@ function verifyCoreCandidateSource({
     const first = packOnce(invocation, exportedSource, firstDirectory);
     const second = packOnce(invocation, exportedSource, secondDirectory);
     assert.deepEqual(first, second, 'candidate source pack is not reproducible');
-    assert.deepEqual(
+    assertInstallEquivalent(
       first,
       fs.readFileSync(path.join(root, ...entry.artifact.split('/'))),
-      'candidate artifact differs from the exact CI-pinned source',
     );
     assertCleanPinnedRepository(repositoryInput, expectedCommit);
   } finally {

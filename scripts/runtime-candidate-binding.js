@@ -255,6 +255,11 @@ function readTarFileEntries(artifact) {
       `candidate tar entry path invalid: ${entryPath}`,
     );
     const size = tarOctal(header, 124, 12, 'entry size');
+    const mode = tarOctal(header, 100, 8, 'entry mode');
+    assert(
+      mode === 0o644 || mode === 0o755,
+      `candidate tar entry mode is unsupported: ${entryPath}`,
+    );
     assert(type === 0 || type === 48, `candidate tar entry type is unsupported: ${entryPath}`);
     const bodyStart = offset + 512;
     const bodyEnd = bodyStart + size;
@@ -264,6 +269,7 @@ function readTarFileEntries(artifact) {
       Object.freeze({
         path: entryPath,
         size,
+        mode,
         bytes: Buffer.from(archive.subarray(bodyStart, bodyEnd)),
       }),
     );
