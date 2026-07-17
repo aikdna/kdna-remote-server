@@ -644,7 +644,7 @@ function verifyCandidateBinding(root) {
     assert(
       coreEvidence.pack?.status === 'candidate_source_pack_not_registry_artifact' &&
         coreEvidence.pack?.npm_client === '11.17.0' &&
-        coreEvidence.pack?.filename === 'aikdna-kdna-core-0.19.0.tgz' &&
+        coreEvidence.pack?.filename === 'aikdna-kdna-core-0.20.0.tgz' &&
         coreEvidence.pack?.size === bytes.length &&
         coreEvidence.pack?.unpacked_size === unpackedSize &&
         coreEvidence.pack?.entry_count === entries.length &&

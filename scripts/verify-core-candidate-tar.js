@@ -15,7 +15,7 @@ const { exactCommitFiles, gitAuthority } = require('./git-authority');
 
 const ROOT = path.resolve(__dirname, '..');
 const CORE_NAME = '@aikdna/kdna-core';
-const CORE_VERSION = '0.19.0';
+const CORE_VERSION = '0.20.0';
 const CORE_SUBDIRECTORY = path.join('packages', 'kdna-core');
 
 function run(command, args, options = {}) {

@@ -63,13 +63,13 @@ function installedRoot(t) {
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
   fs.writeFileSync(
     path.join(root, 'package.json'),
-    `${JSON.stringify({ name: '@test/remote', dependencies: { [CORE]: '0.19.0' } }, null, 2)}\n`,
+    `${JSON.stringify({ name: '@test/remote', dependencies: { [CORE]: '0.20.0' } }, null, 2)}\n`,
   );
   const core = path.join(root, 'node_modules', '@aikdna', 'kdna-core');
   fs.mkdirSync(core, { recursive: true });
   fs.writeFileSync(
     path.join(core, 'package.json'),
-    `${JSON.stringify({ name: CORE, version: '0.19.0' }, null, 2)}\n`,
+    `${JSON.stringify({ name: CORE, version: '0.20.0' }, null, 2)}\n`,
   );
   return root;
 }
@@ -107,19 +107,19 @@ function createSourceRepository(t) {
   fs.mkdirSync(packageRoot, { recursive: true });
   fs.writeFileSync(
     path.join(packageRoot, 'package.json'),
-    `${JSON.stringify({ name: CORE, version: '0.19.0' })}\n`,
+    `${JSON.stringify({ name: CORE, version: '0.20.0' })}\n`,
   );
   run(['add', '--all']);
   run(['commit', '--quiet', '-m', 'fixture']);
   return { repository, packageRoot, head: run(['rev-parse', 'HEAD']), run };
 }
 
-test('default install is one exact Core 0.19.0 candidate and release blocks before lookup', () => {
+test('default install is one exact Core 0.20.0 candidate and release blocks before lookup', () => {
   const binding = verifyCandidateBinding(ROOT);
   assert.equal(binding.packages.length, 1);
   assert.equal(binding.packages[0].name, CORE);
-  assert.equal(binding.packages[0].commit, 'a257b92345af57e6fb20215576bc976a5291b297');
-  assert.deepEqual(verifyInstalledAikdnaGraph(ROOT), { [CORE]: '0.19.0' });
+  assert.equal(binding.packages[0].commit, '1e77e3e0d486c330fe9f9262b514ef24c859d469');
+  assert.deepEqual(verifyInstalledAikdnaGraph(ROOT), { [CORE]: '0.20.0' });
   let calls = 0;
   assert.throws(
     () => assertRegistryReleaseReady(ROOT, () => { calls += 1; }),
@@ -158,7 +158,7 @@ test('manifest and lock graph reject aliases, name omission, duplicates, and enc
   }, /must appear exactly once/);
   reject('package-lock.json', (lock) => {
     lock.packages['node_modules/foreign/node_modules/%2540aikdna%252fkdna-core'] = {
-      version: '0.19.0',
+      version: '0.20.0',
     };
   }, /package name invalid/);
   reject('package-lock.json', (lock) => {
@@ -171,11 +171,11 @@ test('manifest and lock graph reject aliases, name omission, duplicates, and enc
 
 test('candidate artifact paths and authority files reject encoding, symlinks, and hardlinks', (t) => {
   for (const artifact of [
-    'tests\\fixtures\\runtime-candidates\\kdna-core-0.19.0.tgz',
-    'tests/fixtures/runtime-candidates//kdna-core-0.19.0.tgz',
-    'tests/fixtures/runtime-candidates/./kdna-core-0.19.0.tgz',
+    'tests\\fixtures\\runtime-candidates\\kdna-core-0.20.0.tgz',
+    'tests/fixtures/runtime-candidates//kdna-core-0.20.0.tgz',
+    'tests/fixtures/runtime-candidates/./kdna-core-0.20.0.tgz',
     'tests/fixtures/runtime-candidates/%2e%2e.tgz',
-    'tests/fixtures/runtime-candidates/KDNA-core-0.19.0.tgz',
+    'tests/fixtures/runtime-candidates/KDNA-core-0.20.0.tgz',
   ]) {
     const root = copyAuthorityRoot(t);
     mutateJson(root, BINDING_PATH, (binding) => { binding.packages[0].artifact = artifact; });
@@ -199,7 +199,7 @@ test('candidate artifact paths and authority files reject encoding, symlinks, an
 test('installed graph rejects aliases, duplicates, vendored identities, and symlinked packages', (t) => {
   {
     const root = installedRoot(t);
-    assert.deepEqual(verifyInstalledAikdnaGraph(root), { [CORE]: '0.19.0' });
+    assert.deepEqual(verifyInstalledAikdnaGraph(root), { [CORE]: '0.20.0' });
   }
   {
     const root = installedRoot(t);
@@ -217,7 +217,7 @@ test('installed graph rejects aliases, duplicates, vendored identities, and syml
     fs.mkdirSync(vendored, { recursive: true });
     fs.writeFileSync(
       path.join(vendored, 'package.json'),
-      `${JSON.stringify({ name: CORE, version: '0.19.0' })}\n`,
+      `${JSON.stringify({ name: CORE, version: '0.20.0' })}\n`,
     );
     assert.throws(() => verifyInstalledAikdnaGraph(root), /not at its canonical top-level path/);
   }
@@ -242,7 +242,7 @@ test('registry lookup uses trusted npm 11.17 with fixed global and scoped regist
     trusted.cleanup();
   }
   let registryInvocation;
-  strictRegistryLookup(CORE, '0.19.0', {
+  strictRegistryLookup(CORE, '0.20.0', {
     root: ROOT,
     nodeExecPath: process.execPath,
     runner(command, args, options) {
@@ -252,7 +252,7 @@ test('registry lookup uses trusted npm 11.17 with fixed global and scoped regist
         signal: null,
         stdout: JSON.stringify({
           name: CORE,
-          version: '0.19.0',
+          version: '0.20.0',
           'dist.integrity': `sha512-${Buffer.alloc(64).toString('base64')}`,
         }),
         stderr: '',
