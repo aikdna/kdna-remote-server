@@ -2,8 +2,9 @@
 
 ## 0.4.0 (2026-07-16)
 
-- Move the runtime boundary to the exact KDNA Core 0.19.0 candidate and consume
-  one current full Runtime Capsule before producing task-scoped projections.
+- Move the runtime boundary to the published KDNA Core 0.20.0 registry
+  artifact and consume one current full Runtime Capsule before producing
+  task-scoped projections.
 - Bind every non-dry-run authorization to the loaded Capsule identity, a
   required license key, a canonical license identifier, and the remote
   deployment's own machine fingerprint; reject caller identity overrides and
