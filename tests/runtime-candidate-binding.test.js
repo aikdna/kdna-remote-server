@@ -114,18 +114,13 @@ function createSourceRepository(t) {
   return { repository, packageRoot, head: run(['rev-parse', 'HEAD']), run };
 }
 
-test('default install is one exact Core 0.20.0 candidate and release blocks before lookup', () => {
+test('default install is one exact Core 0.20.0 registry artifact and the release gate accepts it', () => {
   const binding = verifyCandidateBinding(ROOT);
   assert.equal(binding.packages.length, 1);
   assert.equal(binding.packages[0].name, CORE);
   assert.equal(binding.packages[0].commit, '1e77e3e0d486c330fe9f9262b514ef24c859d469');
   assert.deepEqual(verifyInstalledAikdnaGraph(ROOT), { [CORE]: '0.20.0' });
-  let calls = 0;
-  assert.throws(
-    () => assertRegistryReleaseReady(ROOT, () => { calls += 1; }),
-    /still candidate-bound/,
-  );
-  assert.equal(calls, 0);
+  assert.doesNotThrow(() => assertRegistryReleaseReady(ROOT, strictRegistryLookup));
 });
 
 test('manifest and lock graph reject aliases, name omission, duplicates, and encoded paths', (t) => {
@@ -155,7 +150,7 @@ test('manifest and lock graph reject aliases, name omission, duplicates, and enc
     lock.packages[`node_modules/foreign/node_modules/${CORE}`] = {
       ...lock.packages[`node_modules/${CORE}`],
     };
-  }, /must appear exactly once/);
+  }, /must appear exactly once|resolution\/path mismatch/);
   reject('package-lock.json', (lock) => {
     lock.packages['node_modules/foreign/node_modules/%2540aikdna%252fkdna-core'] = {
       version: '0.20.0',

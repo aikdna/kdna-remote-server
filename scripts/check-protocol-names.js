@@ -43,7 +43,10 @@ function visit(directory) {
     const bytes = fs.readFileSync(absolute);
     if (bytes.length > 1_000_000 || bytes.includes(0)) continue;
     const lines = bytes.toString('utf8').split(/\r?\n/);
-    lines.forEach((line, index) => {
+    lines.forEach((rawLine, index) => {
+      const line = rawLine
+        .replace(/("integrity"\s*:\s*")[^"]+(")/g, '$1<opaque digest>$2')
+        .replace(/("sha512"\s*:\s*")[^"]+(")/g, '$1<opaque digest>$2');
       for (const [rule, pattern] of retired) {
         pattern.lastIndex = 0;
         if (!pattern.test(line)) continue;

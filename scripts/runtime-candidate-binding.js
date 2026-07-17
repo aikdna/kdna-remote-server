@@ -601,9 +601,17 @@ function verifyCandidateBinding(root) {
         coreEvidence.package === entry.name &&
         coreEvidence.version === entry.version &&
         coreEvidence.git_head === pinnedCommit &&
-        coreEvidence.source_worktree_clean === true &&
-        coreEvidence.registry_artifact === null,
+        coreEvidence.source_worktree_clean === true,
       `candidate source evidence mismatch: ${entry.name}`,
+    );
+    const registryArtifact = coreEvidence.registry_artifact;
+    assert(
+      registryArtifact === null ||
+        (typeof registryArtifact === 'object' &&
+          registryArtifact.published === true &&
+          registryArtifact.sha256 === entry.sha256 &&
+          registryArtifact.integrity === entry.integrity),
+      `candidate registry artifact evidence invalid: ${entry.name}`,
     );
     assert(
       typeof entry.artifact === 'string' &&
@@ -648,7 +656,8 @@ function verifyCandidateBinding(root) {
     const entries = readTarFileEntries(artifact);
     const unpackedSize = entries.reduce((total, candidate) => total + candidate.size, 0);
     assert(
-      coreEvidence.pack?.status === 'candidate_source_pack_not_registry_artifact' &&
+      (coreEvidence.pack?.status === 'candidate_source_pack_not_registry_artifact' ||
+        coreEvidence.pack?.status === 'registry_artifact') &&
         coreEvidence.pack?.npm_client === '11.17.0' &&
         coreEvidence.pack?.filename === 'aikdna-kdna-core-0.20.0.tgz' &&
         coreEvidence.pack?.size === bytes.length &&
