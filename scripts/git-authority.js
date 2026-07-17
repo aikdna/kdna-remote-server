@@ -10,7 +10,7 @@ function sourceGitEnvironment() {
   }
   environment.GIT_CONFIG_NOSYSTEM = '1';
   environment.GIT_NO_REPLACE_OBJECTS = '1';
-  environment.GIT_REPLACE_REF_BASE = 'refs/replace';
+  environment.GIT_REPLACE_REF_BASE = 'refs/replace/';
   environment.GIT_TERMINAL_PROMPT = '0';
   return environment;
 }

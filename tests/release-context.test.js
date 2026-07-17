@@ -357,7 +357,7 @@ test('release Git authority ignores inherited alternate replacements and Git env
     GIT_CONFIG_COUNT: '1',
     GIT_CONFIG_KEY_0: 'core.useReplaceRefs',
     GIT_CONFIG_VALUE_0: 'true',
-    GIT_REPLACE_REF_BASE: 'refs/alternate-replacements',
+    GIT_REPLACE_REF_BASE: 'refs/alternate-replacements/',
   };
   const raw = spawnSync(
     'git',
@@ -444,7 +444,7 @@ test('actual release binding preflight ignores poisoned Git environment for HEAD
     GIT_DIR: '/nonexistent/poisoned-git-dir',
     GIT_INDEX_FILE: '/nonexistent/poisoned-index',
     GIT_OBJECT_DIRECTORY: '/nonexistent/poisoned-objects',
-    GIT_REPLACE_REF_BASE: 'refs/alternate-replacements',
+    GIT_REPLACE_REF_BASE: 'refs/alternate-replacements/',
     GIT_WORK_TREE: '/nonexistent/poisoned-worktree',
     GITHUB_REF: 'refs/tags/0.4.0',
     GITHUB_SHA: commit,

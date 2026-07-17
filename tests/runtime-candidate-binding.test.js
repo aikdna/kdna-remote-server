@@ -382,7 +382,7 @@ test('candidate Git authority ignores inherited alternate replacements and Git e
     GIT_CONFIG_COUNT: '1',
     GIT_CONFIG_KEY_0: 'core.useReplaceRefs',
     GIT_CONFIG_VALUE_0: 'true',
-    GIT_REPLACE_REF_BASE: 'refs/alternate-replacements',
+    GIT_REPLACE_REF_BASE: 'refs/alternate-replacements/',
   };
   const raw = spawnSync(
     'git',
