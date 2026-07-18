@@ -12,9 +12,14 @@ authorized callers. It implements the candidate
 projection contract in [`specs/kdna-runtime-projection.md`][1]
 and the self-hosting invariant from [`docs/REMOTE_MODE.md`][2].
 
-The server never opens or decodes asset entries itself. It asks KDNA Core 0.19.0
+The server never opens or decodes asset entries itself. It asks KDNA Core 0.20.0
 for one authorized `full` Runtime Capsule, then narrows that Capsule context at
 the HTTP boundary for each remote request.
+
+Remote sends entitlement refreshes only to the canonical
+`/entitlements/sync` route. Deploy Activation 0.2.0 before Remote 0.4.1 or
+later. Remote's test and release gates start the exact installed Activation
+0.2.0 package and execute an activate-to-sync exchange before publication.
 
 [1]: https://github.com/aikdna/kdna/blob/main/specs/kdna-runtime-projection.md
 [2]: https://github.com/aikdna/kdna/blob/main/docs/REMOTE_MODE.md

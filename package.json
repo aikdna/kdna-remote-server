@@ -1,6 +1,6 @@
 {
   "name": "@aikdna/kdna-remote-server",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "KDNA remote-mode projection server — self-hostable HTTP server that returns task-scoped judgment projections without ever sending the full .kdna payload. Implements specs/kdna-runtime-projection.md and the self-hosting invariant from docs/REMOTE_MODE.md (Story 18).",
   "type": "commonjs",
   "main": "src/index.js",
@@ -36,6 +36,7 @@
     "@aikdna/kdna-core": "0.20.0"
   },
   "devDependencies": {
+    "@aikdna/kdna-activation-server": "0.2.0",
     "cbor-x": "1.6.4"
   },
   "license": "Apache-2.0",

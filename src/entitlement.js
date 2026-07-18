@@ -24,6 +24,7 @@ const { spawnSync } = require('node:child_process');
 const MACHINE_FINGERPRINT_RE = /^[0-9a-f]{64}$/;
 const LICENSE_ID_RE = /^[A-Za-z0-9_\-:.]{1,128}$/;
 const MAX_ACTIVATION_RESPONSE_BYTES = 64 * 1024;
+const ENTITLEMENT_SYNC_PATH = '/entitlements/sync';
 
 function machineFingerprint() {
   const parts = [os.hostname(), String(os.userInfo().uid), os.platform(), os.arch()];
@@ -72,7 +73,7 @@ function activationEndpoint(activationUrl) {
   if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && loopback)) {
     throw new Error('activation server must use HTTPS except for an exact loopback development origin');
   }
-  return `${parsed.origin}/entitlements/sync`;
+  return `${parsed.origin}${ENTITLEMENT_SYNC_PATH}`;
 }
 
 async function readActivationResponse(res) {
@@ -295,6 +296,7 @@ function verifyEntitlement({
 }
 
 module.exports = {
+  ENTITLEMENT_SYNC_PATH,
   LICENSE_ID_RE,
   MAX_ACTIVATION_RESPONSE_BYTES,
   MACHINE_FINGERPRINT_RE,

@@ -39,6 +39,7 @@ const { startServer, stopServer, loadAsset, selectProjection } = require('../src
 const { pack } = require('@aikdna/kdna-core');
 const { scrubSecrets } = require('../src/audit');
 const {
+  ENTITLEMENT_SYNC_PATH,
   MAX_ACTIVATION_RESPONSE_BYTES,
   activationEndpoint,
 } = require('../src/entitlement');
@@ -105,7 +106,7 @@ function rawHttp(port, request) {
 async function withActivationSyncStub(fn, options = {}) {
   const requests = [];
   const server = http.createServer((req, res) => {
-    if (req.method !== 'POST' || req.url !== '/entitlements/sync') {
+    if (req.method !== 'POST' || req.url !== ENTITLEMENT_SYNC_PATH) {
       res.writeHead(404, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: false, error: { code: 'NOT_FOUND' } }));
       return;
@@ -178,7 +179,7 @@ test('Story 18 server: /healthz returns 200 with asset metadata', async () => {
   });
 });
 
-test('Core 0.19.0 loader returns one current full Runtime Capsule with canonical identity', () => {
+test('Core 0.20.0 loader returns one current full Runtime Capsule with canonical identity', () => {
   const asset = makeTestAsset();
   assert.equal(asset.capsule.type, 'kdna.runtime-capsule');
   assert.equal(asset.capsule.contract_version, '0.1.0');
@@ -343,7 +344,7 @@ test('Story 18 server: non-dry-run projection forwards license_key to activation
     assert.equal(activation.requests[0].license_key, 'synthetic-license-key');
     assert.equal(activation.requests[0].client, 'kdna-remote-server');
     assert.equal(activation.requests[0].machine_fingerprint, MACHINE_A);
-    assert.equal(activation.requests[0].path, '/entitlements/sync');
+    assert.equal(activation.requests[0].path, ENTITLEMENT_SYNC_PATH);
   });
 });
 
@@ -543,17 +544,18 @@ test('Activation arrays and invalid JSON are stable bad upstream responses', asy
 });
 
 test('Activation transport accepts HTTPS or exact loopback HTTP origins only', async () => {
+  assert.equal(ENTITLEMENT_SYNC_PATH, '/entitlements/sync');
   assert.equal(
     activationEndpoint('https://licenses.example.test'),
-    'https://licenses.example.test/entitlements/sync',
+    `https://licenses.example.test${ENTITLEMENT_SYNC_PATH}`,
   );
   assert.equal(
     activationEndpoint('http://127.0.0.1:3000/'),
-    'http://127.0.0.1:3000/entitlements/sync',
+    `http://127.0.0.1:3000${ENTITLEMENT_SYNC_PATH}`,
   );
   assert.equal(
     activationEndpoint('http://[::1]:3000'),
-    'http://[::1]:3000/entitlements/sync',
+    `http://[::1]:3000${ENTITLEMENT_SYNC_PATH}`,
   );
   for (const unsafe of [
     'http://licenses.example.test',

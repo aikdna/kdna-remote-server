@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.1 (2026-07-18)
+
+- Publish the canonical Activation sync path as one internal contract constant
+  and add an executable cross-package conformance check against the exact
+  installed Activation 0.2.0 package.
+- Correct the public Runtime narrative and fixture minimum to the published
+  KDNA Core 0.20.0 dependency.
+- Require the atomic deployment order Activation 0.2.0 before Remote 0.4.1;
+  removed generation-shaped routes remain unsupported.
+- Extend dependency-graph verification to distinguish shipped Runtime
+  dependencies from exact development-only conformance packages.
+
 ## 0.4.0 (2026-07-16)
 
 - Move the runtime boundary to the published KDNA Core 0.20.0 registry

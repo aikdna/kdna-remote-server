@@ -36,7 +36,7 @@ const manifest = {
   updated_at: '2026-06-28T00:00:00.000Z',
   creator: { name: 'Test Creator', id: 'test-creator' },
   compatibility: {
-    min_loader_version: '0.19.0',
+    min_loader_version: '0.20.0',
     profile: 'kdna.payload.judgment',
     profile_version: '0.1.0',
   },

@@ -325,7 +325,7 @@ function referencesAikdnaScope(value) {
   return aikdnaReferences(value).length > 0;
 }
 
-function assertDependencyMaps(container, label, directVersions, requireFormalMap = false) {
+function assertDependencyMaps(container, label, allowedVersions, expectedMaps = null) {
   for (const mapName of DEPENDENCY_MAP_NAMES) {
     for (const [name, spec] of Object.entries(container?.[mapName] || {})) {
       const nameReferences = aikdnaReferences(name);
@@ -339,13 +339,13 @@ function assertDependencyMaps(container, label, directVersions, requireFormalMap
         nameReferences.length === 1 && nameReferences[0] === name && AIKDNA_PACKAGE_RE.test(name),
         `${label} AIKDNA package name invalid: ${name}`,
       );
-      assert(directVersions.has(name), `${label} references undeclared AIKDNA package: ${name}`);
+      assert(allowedVersions.has(name), `${label} references undeclared AIKDNA package: ${name}`);
       assert(
-        !requireFormalMap || mapName === 'dependencies',
-        `${label} AIKDNA package must be a formal dependency: ${name}`,
+        expectedMaps === null || expectedMaps.get(name) === mapName,
+        `${label} AIKDNA package is declared in the wrong dependency map: ${name}`,
       );
       assert(
-        spec === directVersions.get(name),
+        spec === allowedVersions.get(name),
         `${label} AIKDNA dependency spec mismatch: ${name}`,
       );
     }
@@ -360,6 +360,31 @@ function aikdnaDependencyNames(dependencies, label) {
     names.push(name);
   }
   return names.sort();
+}
+
+function declaredAikdnaPackages(packageJson) {
+  const runtimeNames = aikdnaDependencyNames(packageJson.dependencies, 'direct dependencies');
+  const developmentNames = aikdnaDependencyNames(
+    packageJson.devDependencies,
+    'direct development dependencies',
+  );
+  const allNames = [...runtimeNames, ...developmentNames];
+  assert(
+    new Set(allNames).size === allNames.length,
+    'AIKDNA package cannot be both a runtime and development dependency',
+  );
+  const versions = new Map([
+    ...runtimeNames.map((name) => [name, packageJson.dependencies[name]]),
+    ...developmentNames.map((name) => [name, packageJson.devDependencies[name]]),
+  ]);
+  const expectedMaps = new Map([
+    ...runtimeNames.map((name) => [name, 'dependencies']),
+    ...developmentNames.map((name) => [name, 'devDependencies']),
+  ]);
+  for (const [name, version] of versions) {
+    assert(SEMVER_RE.test(version || ''), `direct dependency must use exact SemVer: ${name}`);
+  }
+  return { allNames, developmentNames, expectedMaps, runtimeNames, versions };
 }
 
 function assertExactPackageNames(label, actualNames, expectedNames) {
@@ -535,10 +560,18 @@ function verifyCandidateBinding(root) {
     'candidate binding is empty',
   );
 
-  const directNames = aikdnaDependencyNames(packageJson.dependencies, 'direct dependencies');
-  const directVersions = new Map(directNames.map((name) => [name, packageJson.dependencies[name]]));
+  const declared = declaredAikdnaPackages(packageJson);
+  const directNames = declared.runtimeNames;
+  const directVersions = new Map(
+    directNames.map((name) => [name, packageJson.dependencies[name]]),
+  );
   const directSet = new Set(directNames);
-  assertDependencyMaps(packageJson, 'package manifest', directVersions, true);
+  assertDependencyMaps(
+    packageJson,
+    'package manifest',
+    declared.versions,
+    declared.expectedMaps,
+  );
   const bindingNames = binding.packages.map((entry) => entry.name);
   for (const name of bindingNames) {
     assert(
@@ -563,23 +596,41 @@ function verifyCandidateBinding(root) {
     aikdnaDependencyNames(packageLock.packages?.['']?.dependencies, 'lock root dependencies'),
     directNames,
   );
-  assertDependencyMaps(packageLock.packages?.[''], 'lock root', directVersions, true);
+  assertExactPackageNames(
+    'lock root AIKDNA development dependencies',
+    aikdnaDependencyNames(
+      packageLock.packages?.['']?.devDependencies,
+      'lock root development dependencies',
+    ),
+    declared.developmentNames,
+  );
+  assertDependencyMaps(
+    packageLock.packages?.[''],
+    'lock root',
+    declared.versions,
+    declared.expectedMaps,
+  );
   const boundNames = new Set(bindingNames);
-  assertExactAikdnaLockPackages(packageLock, directNames, boundNames, directVersions);
+  assertExactAikdnaLockPackages(
+    packageLock,
+    declared.allNames,
+    boundNames,
+    declared.versions,
+  );
 
-  for (const name of directNames) {
-    const declared = packageJson.dependencies[name];
-    assert(SEMVER_RE.test(declared || ''), `direct dependency must use exact SemVer: ${name}`);
+  for (const name of declared.allNames) {
+    const version = declared.versions.get(name);
+    const dependencyMap = declared.expectedMaps.get(name);
     assert(
-      packageLock.packages?.['']?.dependencies?.[name] === declared,
+      packageLock.packages?.['']?.[dependencyMap]?.[name] === version,
       `lock root dependency mismatch: ${name}`,
     );
     const locked = packageLock.packages?.[`node_modules/${name}`];
-    assert(locked?.version === declared, `lock package version mismatch: ${name}`);
+    assert(locked?.version === version, `lock package version mismatch: ${name}`);
     assert(INTEGRITY_RE.test(locked.integrity || ''), `lock package integrity invalid: ${name}`);
     if (!boundNames.has(name)) {
       assert(
-        locked.resolved === canonicalRegistryUrl(name, declared),
+        locked.resolved === canonicalRegistryUrl(name, version),
         `unbound AIKDNA dependency must use the canonical registry: ${name}`,
       );
     }
@@ -701,12 +752,15 @@ function verifyInstalledAikdnaGraph(root) {
   const packagePath = path.join(root, 'package.json');
   assertAuthorityFile(packagePath, path.join(rootReal, 'package.json'), 'package manifest');
   const packageJson = readJson(packagePath);
-  const directNames = aikdnaDependencyNames(packageJson.dependencies, 'direct dependencies');
-  const directVersions = new Map(directNames.map((name) => [name, packageJson.dependencies[name]]));
-  for (const [name, version] of directVersions) {
-    assert(SEMVER_RE.test(version || ''), `direct dependency must use exact SemVer: ${name}`);
-  }
-  assertDependencyMaps(packageJson, 'package manifest', directVersions, true);
+  const declared = declaredAikdnaPackages(packageJson);
+  const directNames = declared.allNames;
+  const directVersions = declared.versions;
+  assertDependencyMaps(
+    packageJson,
+    'package manifest',
+    directVersions,
+    declared.expectedMaps,
+  );
 
   const occurrences = new Map(directNames.map((name) => [name, []]));
   const visitedNodeModules = new Set();

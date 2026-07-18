@@ -14,6 +14,7 @@ const commands = Object.freeze([
   ['scripts/check-public-surface.js'],
   ['scripts/check-protocol-names.js'],
   ['scripts/check-runtime-candidate.js'],
+  ['scripts/verify-activation-contract.js'],
   ['--test', ...testFiles],
 ]);
 
