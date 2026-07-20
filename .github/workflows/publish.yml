@@ -1,0 +1,61 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.action == 'published' &&
+      github.event.release.draft == false &&
+      github.event.release.prerelease == false
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      RELEASE_EVENT_ACTION: ${{ github.event.action }}
+      RELEASE_TAG: ${{ github.event.release.tag_name }}
+      RELEASE_IS_DRAFT: ${{ github.event.release.draft }}
+      RELEASE_IS_PRERELEASE: ${{ github.event.release.prerelease }}
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ github.event.release.tag_name }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install through the integrity-pinned isolated npm release
+        run: node scripts/trusted-npm.js ci --ignore-scripts --registry=https://registry.npmjs.org/ --@aikdna:registry=https://registry.npmjs.org/
+      - name: Verify release event, tag, dependency, package, and tests
+        run: node scripts/run-release-check.js
+      - name: Build independently verified package evidence
+        run: >-
+          node scripts/generate-release-evidence.js
+          --out "$RUNNER_TEMP/kdna-remote-server-release-evidence.json"
+          --artifact "$RUNNER_TEMP/kdna-remote-server-release.tgz"
+      - name: Apply fail-closed registry duplicate policy
+        id: registry
+        run: >-
+          node scripts/registry-duplicate-guard.js
+          --evidence "$RUNNER_TEMP/kdna-remote-server-release-evidence.json"
+          --artifact "$RUNNER_TEMP/kdna-remote-server-release.tgz"
+      - name: Publish the verified package
+        if: steps.registry.outputs.should_publish == 'true'
+        run: >-
+          node scripts/publish-verified-artifact.js
+          --evidence "$RUNNER_TEMP/kdna-remote-server-release-evidence.json"
+          --artifact "$RUNNER_TEMP/kdna-remote-server-release.tgz"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Remove transient release artifacts
+        if: always()
+        run: rm -f "$RUNNER_TEMP/kdna-remote-server-release-evidence.json" "$RUNNER_TEMP/kdna-remote-server-release.tgz"

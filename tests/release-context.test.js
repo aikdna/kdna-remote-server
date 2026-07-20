@@ -17,7 +17,7 @@ const {
 
 const ROOT = path.resolve(__dirname, '..');
 const PACKAGE_JSON = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-const PUBLISH_WORKFLOW = path.join(ROOT, '.github/workflows/publish.yml');
+const WORKFLOW = fs.readFileSync(path.join(ROOT, '.github/workflows/publish.yml'), 'utf8');
 const SCRIPT = path.join(ROOT, 'scripts/verify-release-context.cjs');
 
 function changelogFor(heading, extra = '') {
@@ -272,8 +272,34 @@ test('near-match, stale, and duplicate CHANGELOG headings fail closed', () => {
   }
 });
 
-test('frozen repository has no automated publish workflow', () => {
-  assert.equal(fs.existsSync(PUBLISH_WORKFLOW), false);
+test('publish workflow is release-only and passes the tag only through env', () => {
+  assert.match(WORKFLOW, /release:\s*\n\s+types: \[published\]/);
+  assert.doesNotMatch(WORKFLOW, /workflow_dispatch/);
+  assert.match(WORKFLOW, /node scripts\/run-release-check\.js/);
+  assert.doesNotMatch(WORKFLOW, /npm install|npm --version|process\.env\.npm_execpath/);
+  assert.match(WORKFLOW, /node scripts\/trusted-npm\.js ci --ignore-scripts/);
+  assert.doesNotMatch(WORKFLOW, /^\s*run:\s+npm\b/m);
+
+  for (const [name, command] of Object.entries(PACKAGE_JSON.scripts)) {
+    assert.doesNotMatch(command, /(?:^|\s)npm(?:\s|$)/, `${name} must not resolve npm through PATH`);
+  }
+
+  const expression = '$' + '{{ github.event.release.tag_name }}';
+  const expressionLines = WORKFLOW
+    .split(/\r?\n/)
+    .filter((line) => line.includes(expression))
+    .map((line) => line.trim());
+  assert.deepEqual(expressionLines, [
+    'group: $' + '{{ github.workflow }}-' + expression,
+    `RELEASE_TAG: ${expression}`,
+    `ref: ${expression}`,
+  ]);
+  assert.equal(
+    WORKFLOW
+      .split(/\r?\n/)
+      .some((line) => line.includes(expression) && line.trimStart().startsWith('run:')),
+    false,
+  );
 });
 
 test('release source rejects hidden index flags and exports exact commit bytes', (t) => {
