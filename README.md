@@ -17,13 +17,15 @@ for one authorized `full` Runtime Capsule, then narrows that Capsule context at
 the HTTP boundary for each remote request.
 
 Remote sends entitlement refreshes only to the canonical
-`/entitlements/sync` route. Deploy Activation 0.2.0 before Remote 0.4.1 or
-later. Remote's test and release gates start the exact installed Activation
-0.2.0 package and execute an activate-to-sync exchange before publication.
+`/entitlements/sync` route. The unreleased Remote `0.4.2` source candidate is
+bound to the exact unreleased Activation `0.2.1` candidate artifact and
+executes an activate-to-sync exchange against those bytes. That development
+fixture is not a runtime dependency and does not make either candidate
+published.
 
-The registry package at `0.4.1` is the published baseline. Changes visible in a
-source checkout after that release are unreleased until a later registry
-version is published; a checkout is not evidence of publication.
+The registry package at `0.4.1` is the published baseline. Repository `0.4.2`
+is an unreleased source candidate; it is not npm latest and a checkout is not
+evidence of publication.
 
 [1]: https://github.com/aikdna/kdna/blob/main/specs/kdna-runtime-projection.md
 [2]: https://github.com/aikdna/kdna/blob/main/docs/REMOTE_MODE.md
@@ -46,8 +48,15 @@ deployer-controlled configuration value (see
 ## Quick start (self-hosting)
 
 ```bash
-# 1. Install (any Node 22.9+ server)
+# 1a. Published baseline (any Node 22.9+ server)
 npm install -g @aikdna/kdna-remote-server
+
+# 1b. To evaluate the unreleased 0.4.2 candidate instead, use a trusted exact
+# source checkout and its inspected tarball.
+npm ci
+npm test
+npm pack
+npm install -g ./aikdna-kdna-remote-server-0.4.2.tgz
 
 # 2. Point at a .kdna asset on local disk
 kdna-remote-server \

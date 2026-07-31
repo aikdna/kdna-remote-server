@@ -1,6 +1,6 @@
 {
   "name": "@aikdna/kdna-remote-server",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Self-hostable KDNA projection service that returns task-scoped judgment projections without sending the full .kdna payload.",
   "type": "commonjs",
   "main": "src/index.js",
@@ -20,6 +20,7 @@
     "check:public-surface": "node scripts/check-public-surface.js",
     "check:protocol-names": "node scripts/check-protocol-names.js",
     "check:runtime-candidate": "node scripts/check-runtime-candidate.js",
+    "lint": "node scripts/check-syntax.js",
     "test": "node scripts/run-tests.js",
     "test:core-candidate-tar": "node scripts/verify-core-candidate-tar.js",
     "release:readiness": "node scripts/release-readiness.js",
@@ -36,7 +37,6 @@
     "@aikdna/kdna-core": "0.20.0"
   },
   "devDependencies": {
-    "@aikdna/kdna-activation-server": "0.2.0",
     "cbor-x": "1.6.4"
   },
   "license": "Apache-2.0",

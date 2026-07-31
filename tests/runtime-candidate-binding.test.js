@@ -28,7 +28,6 @@ const {
 
 const ROOT = path.resolve(__dirname, '..');
 const CORE = '@aikdna/kdna-core';
-const ACTIVATION = '@aikdna/kdna-activation-server';
 
 function copyAuthorityRoot(t) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'kdna-remote-binding-')));
@@ -121,7 +120,6 @@ test('default install is one exact Core 0.20.0 registry artifact and the release
   assert.equal(binding.packages[0].name, CORE);
   assert.equal(binding.packages[0].commit, '1e77e3e0d486c330fe9f9262b514ef24c859d469');
   assert.deepEqual(verifyInstalledAikdnaGraph(ROOT), {
-    [ACTIVATION]: '0.2.0',
     [CORE]: '0.20.0',
   });
   assert.doesNotThrow(() => assertRegistryReleaseReady(ROOT, strictRegistryLookup));
@@ -145,9 +143,9 @@ test('manifest and lock graph reject aliases, name omission, duplicates, and enc
     pkg.dependencies['shadow-core'] = 'npm:@aikdna/kdna-core@0.18.0';
   }, /alias or encoded dependency spec/);
   reject('package.json', (pkg) => {
-    pkg.dependencies[ACTIVATION] = pkg.devDependencies[ACTIVATION];
-    delete pkg.devDependencies[ACTIVATION];
-  }, /candidate binding|package set mismatch/);
+    pkg.devDependencies[CORE] = pkg.dependencies[CORE];
+    delete pkg.dependencies[CORE];
+  }, /candidate binding|non-direct|package set mismatch/);
   reject('package-lock.json', (lock) => {
     lock.packages['node_modules/shadow-core'] = {
       version: '0.18.0',

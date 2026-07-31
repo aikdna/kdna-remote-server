@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.4.2
+
+- Keep license secrets out of shell arguments in public projection examples by
+  using a private request file or stdin.
+- Bind the Remote conformance test to the exact unreleased Activation 0.2.1
+  candidate artifact, source commit, tree, and reproducible package digests
+  without treating that development fixture as a shipped dependency.
+- Preserve the registry-published Remote 0.4.1 and Activation 0.2.0 coordinates
+  as historical baselines; the new candidate bytes use distinct unpublished
+  patch versions.
+
 ## 0.4.1 (2026-07-18)
 
 - Publish the canonical Activation sync path as one internal contract constant
