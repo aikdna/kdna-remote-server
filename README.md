@@ -21,6 +21,10 @@ Remote sends entitlement refreshes only to the canonical
 later. Remote's test and release gates start the exact installed Activation
 0.2.0 package and execute an activate-to-sync exchange before publication.
 
+The registry package at `0.4.1` is the published baseline. Changes visible in a
+source checkout after that release are unreleased until a later registry
+version is published; a checkout is not evidence of publication.
+
 [1]: https://github.com/aikdna/kdna/blob/main/specs/kdna-runtime-projection.md
 [2]: https://github.com/aikdna/kdna/blob/main/docs/REMOTE_MODE.md
 
@@ -51,15 +55,21 @@ kdna-remote-server \
   --port 3000 \
   --activation-server https://licenses.yoursite.com
 
-# 3. Test
+# 3. Test. Put the request in a private file so license_key never enters argv.
 curl http://localhost:3000/healthz
+install -m 600 /dev/null ./projection-request.json
+${EDITOR:?Set EDITOR} ./projection-request.json
 curl -X POST http://localhost:3000/project \
   -H 'Content-Type: application/json' \
-  -d '{"kdna_id":"kdna:yourname:your-asset","license_key":"<license-key>","task":"review_article"}'
+  --data-binary @./projection-request.json
+rm ./projection-request.json
 ```
 
 That's it. No AIKDNA registration or hardcoded AIKDNA endpoint. Entitlement
 checks go only to the activation server selected by the deployer.
+Do not replace a placeholder with a real license secret inside a command
+argument. A deployment secret provider may instead pipe the same bounded JSON
+body to `curl --data-binary @-`.
 
 ---
 
