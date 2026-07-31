@@ -1,0 +1,23 @@
+{
+  "schema": "kdna.activation-candidate-binding",
+  "schema_version": "0.1.0",
+  "package": {
+    "name": "@aikdna/kdna-activation-server",
+    "version": "0.2.1"
+  },
+  "source": {
+    "git_head": "5bed36355edcb294beda935fdfa08586efd35933",
+    "git_tree": "80d8f932a87a9178298b405f7f96d4416c16d937",
+    "worktree_clean": true
+  },
+  "artifact": {
+    "path": "tests/fixtures/runtime-candidates/kdna-activation-server-0.2.1.tgz",
+    "size": 25899,
+    "unpacked_size": 89768,
+    "entry_count": 12,
+    "sha1": "5d1ae555afb2a67a9f4d8fd9655c819f9e849617",
+    "sha256": "af3e91f954316dc46690e966d51447dbec5c19a3a8d471e87ecc596d0e768b3d",
+    "integrity": "sha512-OdSh34co0pwUnNkQ5+ZgfkY4F+FWKnqgpR8gtVAafCCUWQCvdtnRZUgLr7CHHSnqVRCqpfRjBWDksbN6uFTQcA==",
+    "reproducible_runs": 2
+  }
+}
