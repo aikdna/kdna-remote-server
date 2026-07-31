@@ -1,5 +1,5 @@
 /**
- * entitlement.js — entitlement verification for the projection server (Story 18)
+ * entitlement.js — entitlement verification for the projection server
  *
  * Per docs/REMOTE_MODE.md, the projection server MUST verify
  * entitlement on every request. The default is to call the

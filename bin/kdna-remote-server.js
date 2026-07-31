@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * kdna-remote-server — CLI entry (Story 18)
+ * kdna-remote-server — CLI entry
  *
  * Self-hostable HTTP projection server. See README.md for
  * self-hosting instructions (run on any Node 22.9+ machine).

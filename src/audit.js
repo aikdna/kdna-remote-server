@@ -1,5 +1,5 @@
 /**
- * audit.js — projection server audit log (Story 18)
+ * audit.js — projection server audit log
  *
  * Per docs/REMOTE_MODE.md §"Self-hosting requirements" for the
  * projection server, the server MUST "Emit audit events per

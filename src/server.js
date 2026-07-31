@@ -1,5 +1,5 @@
 /**
- * kdna-remote-server — self-hostable HTTP projection server (Story 18)
+ * kdna-remote-server — self-hostable HTTP projection server
  *
  * Implements specs/kdna-runtime-projection.md and the self-hosting
  * invariant from docs/REMOTE_MODE.md:
