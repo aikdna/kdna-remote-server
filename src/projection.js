@@ -1,5 +1,5 @@
 /**
- * projection.js — task-scoped projection selection (Story 18)
+ * projection.js — task-scoped projection selection
  *
  * Given a loaded .kdna asset and a request shape, return a
  * task_projection object containing only the fragments relevant

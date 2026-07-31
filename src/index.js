@@ -1,5 +1,5 @@
 /**
- * index.js — public API for @aikdna/kdna-remote-server (Story 18)
+ * index.js — public API for @aikdna/kdna-remote-server
  *
  * Exports the server, projection, entitlement, and audit
  * modules so that:
