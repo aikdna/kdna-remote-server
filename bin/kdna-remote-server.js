@@ -142,7 +142,7 @@ async function main() {
       `  audit_log:    ${auditLog || '~/.kdna/remote-server-audit.jsonl'}\n` +
       `\n` +
       `Try:  curl http://${host}:${actualPort}/healthz\n` +
-      `  curl -X POST http://${host}:${actualPort}/project -H 'Content-Type: application/json' -d '{"kdna_id":"${asset.asset_id}","task":"review"}\n`,
+      `  Send projection JSON with --data-binary @<private-request-file> or @-; never place license secrets in argv.\n`,
   );
 
   const shutdown = (signal) => {
