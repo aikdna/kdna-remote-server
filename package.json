@@ -34,7 +34,7 @@
     "node": ">=22.9.0"
   },
   "dependencies": {
-    "@aikdna/kdna-core": "0.20.0"
+    "@aikdna/kdna-core": "0.21.0"
   },
   "devDependencies": {
     "cbor-x": "1.6.4"
