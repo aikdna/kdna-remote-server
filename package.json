@@ -37,8 +37,7 @@
     "@aikdna/kdna-core": "0.21.0"
   },
   "devDependencies": {
-    "cbor-x": "1.6.4",
-    "@aikdna/kdna-activation-server": "0.2.0"
+    "cbor-x": "1.6.4"
   },
   "license": "Apache-2.0",
   "repository": {
