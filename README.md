@@ -12,7 +12,7 @@ authorized callers. It implements the candidate
 projection contract in [`specs/kdna-runtime-projection.md`][1]
 and the self-hosting invariant from [`docs/REMOTE_MODE.md`][2].
 
-The server never opens or decodes asset entries itself. It asks KDNA Core 0.20.0
+The server never opens or decodes asset entries itself. It asks KDNA Core 0.21.0
 for one authorized `full` Runtime Capsule, then narrows that Capsule context at
 the HTTP boundary for each remote request.
 
