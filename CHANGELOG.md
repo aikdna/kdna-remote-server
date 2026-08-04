@@ -2,6 +2,8 @@
 
 ## 0.4.2
 
+- Bind the runtime dependency and conformance to the published
+  `@aikdna/kdna-core@0.21.0` (core migration from 0.20.0).
 - Keep license secrets out of shell arguments in public projection examples by
   using a private request file or stdin.
 - Bind the Remote conformance test to the exact unreleased Activation 0.2.1
