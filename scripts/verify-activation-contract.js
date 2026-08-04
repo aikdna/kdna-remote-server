@@ -55,7 +55,7 @@ async function verifyActivationContract(input) {
     ENTITLEMENT_SYNC_PATH,
     'Activation and Remote must use one canonical sync route',
   );
-  assert.equal(activation.CORE_CONFORMANCE_VERSION, '0.20.0');
+  assert.equal(activation.CORE_CONFORMANCE_VERSION, '0.21.0');
   assert.equal(activation.isCanonicalAssetId(ASSET_ID), true);
 
   try {

@@ -179,7 +179,7 @@ test('/healthz returns 200 with asset metadata', async () => {
   });
 });
 
-test('Core 0.20.0 loader returns one current full Runtime Capsule with canonical identity', () => {
+test('Core 0.21.0 loader returns one current full Runtime Capsule with canonical identity', () => {
   const asset = makeTestAsset();
   assert.equal(asset.capsule.type, 'kdna.runtime-capsule');
   assert.equal(asset.capsule.contract_version, '0.1.0');

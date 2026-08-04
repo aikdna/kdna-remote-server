@@ -6,18 +6,18 @@
     "version": "0.2.1"
   },
   "source": {
-    "git_head": "5bed36355edcb294beda935fdfa08586efd35933",
-    "git_tree": "80d8f932a87a9178298b405f7f96d4416c16d937",
+    "git_head": "4d03973f1b171d90e6532a1cf962971fef8274e0",
+    "git_tree": "bbeb6f621508907b6a60fe35be5ee2bdc7cb04fb",
     "worktree_clean": true
   },
   "artifact": {
     "path": "tests/fixtures/runtime-candidates/kdna-activation-server-0.2.1.tgz",
-    "size": 25899,
+    "size": 25900,
     "unpacked_size": 89768,
     "entry_count": 12,
-    "sha1": "5d1ae555afb2a67a9f4d8fd9655c819f9e849617",
-    "sha256": "af3e91f954316dc46690e966d51447dbec5c19a3a8d471e87ecc596d0e768b3d",
-    "integrity": "sha512-OdSh34co0pwUnNkQ5+ZgfkY4F+FWKnqgpR8gtVAafCCUWQCvdtnRZUgLr7CHHSnqVRCqpfRjBWDksbN6uFTQcA==",
+    "sha1": "2c66714291f76987a7efa0caf5659ecb004bf09a",
+    "sha256": "9fed2976da63f14a54c089aaf7ee9fecd0fe805e1302493fac2e29b88bfb6376",
+    "integrity": "sha512-umzVp4hEnArQBpcu0twoJh/ICgipHV9NyXADe0iJVhbh9cT0m+iLX7VSaFBNIZ7CaHlMhlbmyqKKCnNVIp8COw==",
     "reproducible_runs": 2
   }
 }

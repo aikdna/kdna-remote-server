@@ -9,8 +9,8 @@ const { readTarFileEntries } = require('./runtime-candidate-binding');
 
 const ACTIVATION_BINDING_PATH =
   'tests/fixtures/runtime-candidates/activation-binding.json';
-const EXPECTED_ACTIVATION_HEAD = '5bed36355edcb294beda935fdfa08586efd35933';
-const EXPECTED_ACTIVATION_TREE = '80d8f932a87a9178298b405f7f96d4416c16d937';
+const EXPECTED_ACTIVATION_HEAD = '4d03973f1b171d90e6532a1cf962971fef8274e0';
+const EXPECTED_ACTIVATION_TREE = 'bbeb6f621508907b6a60fe35be5ee2bdc7cb04fb';
 const EXPECTED_ACTIVATION_VERSION = '0.2.1';
 const ACTIVATION_PACKAGE = '@aikdna/kdna-activation-server';
 const HEX_40_RE = /^[0-9a-f]{40}$/;

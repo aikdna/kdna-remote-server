@@ -4,11 +4,11 @@
   "packages": [
     {
       "name": "@aikdna/kdna-core",
-      "version": "0.20.0",
-      "commit": "1e77e3e0d486c330fe9f9262b514ef24c859d469",
-      "artifact": "tests/fixtures/runtime-candidates/kdna-core-0.20.0.tgz",
-      "integrity": "sha512-zdx5NuC4mOuN3625Dsn8Bq01/V9+MQy+kT870XXX2JHOjKJhXnBwO3BU8jke2vBrxfnzH7Jm9MmeqTM0UCBc0Q==",
-      "sha256": "b1614d14b77d6b8eac1c0a3902e2270a46cb0f52708e524b12b3990256ff8dee"
+      "version": "0.21.0",
+      "commit": "32aa3ff8e633291d4bb9e01de5a70181c8415d93",
+      "artifact": "tests/fixtures/runtime-candidates/kdna-core-0.21.0.tgz",
+      "integrity": "sha512-y4AC4LlNvKsKxvIO/y14Bl62eRb0BupzvLGbXATXHX4ZUCmYhdlh6U1OL7WF+i0lCAyVJcIE7SKwhQR3uL5uxg==",
+      "sha256": "51561e712fcf4af389e61377b478ad67287c1d7c4483321117922cdb0478e83e"
     }
   ]
 }
