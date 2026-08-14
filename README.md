@@ -17,15 +17,14 @@ for one authorized `full` Runtime Capsule, then narrows that Capsule context at
 the HTTP boundary for each remote request.
 
 Remote sends entitlement refreshes only to the canonical
-`/entitlements/sync` route. The unreleased Remote `0.4.2` source candidate is
-bound to the exact unreleased Activation `0.2.1` candidate artifact and
-executes an activate-to-sync exchange against those bytes. That development
-fixture is not a runtime dependency and does not make either candidate
-published.
+`/entitlements/sync` route. Remote `0.4.2` is verified against the exact
+published Activation `0.2.1` artifact and executes an activate-to-sync
+exchange against those bytes. That development fixture is not a runtime
+dependency.
 
-The registry package at `0.4.1` is the published baseline. Repository `0.4.2`
-is an unreleased source candidate; it is not npm latest and a checkout is not
-evidence of publication.
+The registry package at `0.4.2` is the published baseline and npm latest
+(published 2026-08-09). The published artifact, not a source checkout, is the
+compatibility coordinate.
 
 [1]: https://github.com/aikdna/kdna/blob/main/specs/kdna-runtime-projection.md
 [2]: https://github.com/aikdna/kdna/blob/main/docs/REMOTE_MODE.md
@@ -51,8 +50,8 @@ deployer-controlled configuration value (see
 # 1a. Published baseline (any Node 22.9+ server)
 npm install -g @aikdna/kdna-remote-server
 
-# 1b. To evaluate the unreleased 0.4.2 candidate instead, use a trusted exact
-# source checkout and its inspected tarball.
+# 1b. To build the 0.4.2 source instead, use a trusted exact source checkout
+# and its inspected tarball.
 npm ci
 npm test
 npm pack
