@@ -79,6 +79,11 @@ Do not replace a placeholder with a real license secret inside a command
 argument. A deployment secret provider may instead pipe the same bounded JSON
 body to `curl --data-binary @-`.
 
+For a complete end-to-end walkthrough that runs the activation server and this
+server together (including machine-bound license activation and the
+full-payload boundary check), see
+[docs/LICENSED_PROJECTION_WALKTHROUGH.md](docs/LICENSED_PROJECTION_WALKTHROUGH.md).
+
 ---
 
 ## CLI options
@@ -110,6 +115,12 @@ Options:
                            ~/.kdna/remote-server-audit.jsonl.
   --rate-limit-ms <n>      Minimum gap between requests from
                            the same client. Default 100ms.
+  --print-machine-fingerprint
+                           Print this deployment's stable
+                           machine fingerprint and exit. Use it
+                           to activate a machine-bound license
+                           on this host (see
+                           docs/LICENSED_PROJECTION_WALKTHROUGH.md).
   --help                   Print this help.
 ```
 
