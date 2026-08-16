@@ -21,6 +21,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const { loadAsset } = require('../src/index');
 const { startServer, stopServer } = require('../src/server');
+const { machineFingerprint } = require('../src/entitlement');
 const pkg = require('../package.json');
 
 function parseArgs(argv) {
@@ -71,6 +72,10 @@ Options:
                           Default ~/.kdna/remote-server-audit.jsonl.
   --rate-limit-ms <n>     Minimum gap between requests from the
                           same client. Default 100ms.
+  --print-machine-fingerprint
+                          Print this deployment's stable machine
+                          fingerprint and exit. Use it to activate
+                          a machine-bound license on this host.
   --help                  Print this help.
 
 Self-hosting (default):
@@ -86,6 +91,11 @@ async function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help || args.h) {
     process.stdout.write(help());
+    return;
+  }
+
+  if (args['print-machine-fingerprint']) {
+    process.stdout.write(`${machineFingerprint()}\n`);
     return;
   }
 
