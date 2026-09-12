@@ -1,45 +1,41 @@
 {
   "name": "@aikdna/kdna-remote-server",
-  "version": "0.4.2",
-  "description": "Self-hostable KDNA projection service that returns task-scoped judgment projections without sending the full .kdna payload.",
-  "type": "commonjs",
-  "main": "src/index.js",
-  "bin": {
-    "kdna-remote-server": "bin/kdna-remote-server.js"
+  "version": "0.6.0-rc.component-semantics.1",
+  "description": "Bounded server-owned asset adapter for the public KDNA Read reference Host.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    }
   },
+  "types": "./src/index.d.ts",
   "files": [
-    "src/",
-    "bin/",
+    "src/index.js",
+    "src/index.d.ts",
+    "README.md",
+    "CHANGELOG.md",
     "LICENSE",
     "NOTICE",
-    "CHANGELOG.md",
-    "README.md"
+    "public-contract-binding.json"
   ],
-  "scripts": {
-    "start": "node bin/kdna-remote-server.js",
-    "check:public-surface": "node scripts/check-public-surface.js",
-    "check:protocol-names": "node scripts/check-protocol-names.js",
-    "check:runtime-candidate": "node scripts/check-runtime-candidate.js",
-    "lint": "node scripts/check-syntax.js",
-    "test": "node scripts/run-tests.js",
-    "test:core-candidate-tar": "node scripts/verify-core-candidate-tar.js",
-    "release:readiness": "node scripts/release-readiness.js",
-    "release:evidence": "node scripts/generate-release-evidence.js",
-    "release:registry-guard": "node scripts/registry-duplicate-guard.js",
-    "release:publish-verified": "node scripts/publish-verified-artifact.js",
-    "release:check": "node scripts/run-release-check.js",
-    "prepublishOnly": "node scripts/run-release-check.js"
-  },
   "engines": {
     "node": ">=22.9.0"
   },
-  "dependencies": {
-    "@aikdna/kdna-core": "0.21.0"
-  },
-  "devDependencies": {
-    "cbor-x": "1.6.4"
+  "peerDependencies": {
+    "@aikdna/kdna-core": "0.24.0-rc.component-semantics.2",
+    "@aikdna/kdna-read": "0.3.0-rc.component-semantics.2",
+    "@aikdna/kdna-web-server": "0.5.0-rc.component-semantics.1"
   },
   "license": "Apache-2.0",
+  "scripts": {
+    "test": "node scripts/run-current-tests.mjs",
+    "lint": "node --check src/index.js && node --check scripts/check-current-surface.mjs && node --check tests/current-read.test.mjs",
+    "check:public-surface": "node scripts/check-current-surface.mjs",
+    "release:check": "node scripts/current-release-block.mjs",
+    "prepublishOnly": "node scripts/current-release-block.mjs"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/aikdna/kdna-remote-server.git"
@@ -48,13 +44,18 @@
     "url": "https://github.com/aikdna/kdna-remote-server/issues"
   },
   "homepage": "https://github.com/aikdna/kdna-remote-server",
-  "keywords": [
-    "kdna",
-    "kdna-remote-server",
-    "remote-mode",
-    "projection",
-    "self-hosted",
-    "judgement-asset",
-    "task-projection"
-  ]
+  "devDependencies": {
+    "@aikdna/kdna-core": "file:vendor/aikdna-kdna-core-0.24.0-rc.component-semantics.2.tgz",
+    "@aikdna/kdna-read": "file:vendor/aikdna-kdna-read-0.3.0-rc.component-semantics.2.tgz",
+    "@aikdna/kdna-web-server": "file:vendor/aikdna-kdna-web-server-0.5.0-rc.component-semantics.1.tgz",
+    "@noble/hashes": "file:vendor/noble-hashes-1.8.0.tgz",
+    "ajv": "file:vendor/ajv-8.20.0.tgz",
+    "ajv-formats": "file:vendor/ajv-formats-3.0.1.tgz",
+    "cbor-x": "file:vendor/cbor-x-1.6.5.tgz",
+    "fast-deep-equal": "file:vendor/fast-deep-equal-3.1.3.tgz",
+    "fast-uri": "file:vendor/fast-uri-3.1.7.tgz",
+    "json-schema-traverse": "file:vendor/json-schema-traverse-1.0.0.tgz",
+    "pako": "file:vendor/pako-2.1.0.tgz",
+    "require-from-string": "file:vendor/require-from-string-2.0.2.tgz"
+  }
 }

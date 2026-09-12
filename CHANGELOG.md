@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0-rc.component-semantics.1
+
+- Bind the accepted current Core/Read/Host component graph and update affected public consumers.
+- Preserve server-owned identity, scope, revocation and existing authorization limits.
+
+## 0.5.0-rc.public-read.2 (unpublished candidate)
+
+- Replace the old task/axiom service with the bounded public Read Host adapter.
+- Keep runtime index.js/index.d.ts exact to selftested RC1; use an explicit seven-file package allowlist.
+- Bind repository development tests to exact local Core 0.23.0, Read 0.2.0 and Host RC2 artifacts; old commands and fixtures remain historical.
+- Independent acceptance, product landing and publication are separate decisions.
+
 ## 0.4.2
 
 - Bind the runtime dependency and conformance to the published

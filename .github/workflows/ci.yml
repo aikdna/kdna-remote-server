@@ -1,31 +1,19 @@
-name: CI
-
+name: Current public Read candidate CI
 on: [pull_request, push]
-
 permissions:
   contents: read
-
 jobs:
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        node: ['22.9.0', 24]
+  current-read:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22.9.0', '24', '26']
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
-        with:
-          repository: aikdna/kdna
-          ref: 32aa3ff8e633291d4bb9e01de5a70181c8415d93
-          path: .cross-repo/kdna
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: ${{ matrix.node }}
-      - name: Install through the integrity-pinned isolated npm release
-        run: node scripts/trusted-npm.js ci --ignore-scripts --registry=https://registry.npmjs.org/ --@aikdna:registry=https://registry.npmjs.org/
-      - run: node scripts/trusted-npm.js test
-      - name: Reproduce and exercise the exact Core candidate artifact
-        run: node scripts/trusted-npm.js run test:core-candidate-tar
-        env:
-          KDNA_CORE_CANDIDATE_SOURCE: ${{ github.workspace }}/.cross-repo/kdna
+      - run: npm ci --offline --ignore-scripts --omit=optional --no-audit --no-fund
+      - run: npm test
+      - run: npm run lint
+      - run: npm pack --ignore-scripts --dry-run --json
