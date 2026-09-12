@@ -48,6 +48,7 @@
     "@aikdna/kdna-core": "file:vendor/aikdna-kdna-core-0.24.0-rc.component-semantics.2.tgz",
     "@aikdna/kdna-read": "file:vendor/aikdna-kdna-read-0.3.0-rc.component-semantics.2.tgz",
     "@aikdna/kdna-web-server": "file:vendor/aikdna-kdna-web-server-0.5.0-rc.component-semantics.1.tgz",
+    "@aikdna/kdna-activation-server": "file:vendor/aikdna-kdna-activation-server-0.4.0-rc.component-semantics.1.tgz",
     "@noble/hashes": "file:vendor/noble-hashes-1.8.0.tgz",
     "ajv": "file:vendor/ajv-8.20.0.tgz",
     "ajv-formats": "file:vendor/ajv-formats-3.0.1.tgz",
@@ -57,5 +58,11 @@
     "json-schema-traverse": "file:vendor/json-schema-traverse-1.0.0.tgz",
     "pako": "file:vendor/pako-2.1.0.tgz",
     "require-from-string": "file:vendor/require-from-string-2.0.2.tgz"
+  },
+  "overrides": {
+    "@aikdna/kdna-activation-server": "$@aikdna/kdna-activation-server",
+    "@aikdna/kdna-core": "$@aikdna/kdna-core",
+    "@aikdna/kdna-read": "$@aikdna/kdna-read",
+    "@aikdna/kdna-web-server": "$@aikdna/kdna-web-server"
   }
 }
