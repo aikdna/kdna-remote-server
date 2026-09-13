@@ -3,7 +3,7 @@ on: [pull_request, push]
 permissions:
   contents: read
 jobs:
-  current-read:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
