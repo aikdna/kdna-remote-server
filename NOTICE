@@ -4,12 +4,12 @@ Copyright 2026 KDNA Authors
 This product includes software developed at
 https://github.com/aikdna/kdna-remote-server
 
-This server is a structural selection layer for KDNA `.kdna`
-assets in `remote` access mode. It transmits only task-scoped
-projections, does not transmit or externally store the full
-judgment payload, and makes no content-certification claim. See
+This package is a bounded HTTP Read adapter over the public KDNA
+reference Host. The deployment supplies and verifies context and policy;
+Core and Read own admission and disclosure. Responses carry public Read
+results, not raw asset bytes, and make no content-certification claim. See
 LICENSE for the full Apache 2.0 license text. See README.md for
-the self-hosting invariant and layer-isolation guarantees.
+the embedding contract and transport proof limits.
 
 The server does not generate content-certification fields or claims per SPEC
 §13.1 and the layer-isolation rules in `docs/REMOTE_MODE.md`. Asset-authored
