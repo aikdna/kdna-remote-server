@@ -11,10 +11,10 @@ results, not raw asset bytes, and make no content-certification claim. See
 LICENSE for the full Apache 2.0 license text. See README.md for
 the embedding contract and transport proof limits.
 
-The server does not generate content-certification fields or claims per SPEC
-§13.1 and the layer-isolation rules in `docs/REMOTE_MODE.md`. Asset-authored
-text is preserved verbatim; vocabulary inside selected judgment content is not
-treated as a server claim.
+The adapter makes no content-certification claim. Asset-authored text in a
+public Read result is not a server endorsement or authority statement. The
+current README describes the public Read contract, deployment obligations
+and proof limits.
 
 The source repository includes the unmodified npm 11.17.0 third-party
 distribution archive as integrity-pinned test and release-tooling input. That
